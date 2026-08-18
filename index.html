@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mushroom Bother</title>
+<style>
+  :root {
+    --c64-border: #6c5eb5;
+    --c64-screen: #40318d;
+    --c64-text:   #b8b0ff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--c64-border);
+    color: var(--c64-text);
+    font-family: "Courier New", ui-monospace, monospace;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    overflow: hidden;
+  }
+  h1 {
+    margin: 0; font-size: 18px; letter-spacing: 4px;
+    text-transform: uppercase; font-weight: bold;
+  }
+  #frame {
+    padding: 14px;
+    background: var(--c64-border);
+    border-radius: 6px;
+    box-shadow: 0 0 0 3px #2a2260, 0 14px 40px rgba(0,0,0,.45);
+  }
+  canvas {
+    display: block;
+    background: var(--c64-screen);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    max-width: 96vw;
+    max-height: 78vh;
+    width: 800px; height: 600px;
+  }
+  #hint { font-size: 12px; letter-spacing: 1px; opacity: .85; }
+</style>
+</head>
+<body>
+  <h1>Mushroom Bother</h1>
+  <div id="frame"><canvas id="screen" width="800" height="600"></canvas></div>
+  <div id="hint">Arrows / WASD move &nbsp;·&nbsp; SPACE = complain &nbsp;·&nbsp; P = pause &nbsp;·&nbsp; R = restart</div>
+
+  <script src="src/maze.js"></script>
+  <script src="src/sprites.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/game.js"></script>
+</body>
+</html>
