@@ -13,9 +13,10 @@ rent.
 you in something close to a straight line while you take the long way round the
 maze. Trees stop everyone.
 
-Stussy's only defence is to complain. Hold `SPACE` and Stussy yowls; anyone
-within earshot turns and runs. It drains the complaint meter, and when the meter
-is empty Stussy has lost their voice until it recovers.
+Stussy's only defence is to complain. Hold `SPACE` and Stussy lets fly — *that's
+not paleo!*, *the lift is broken again!*, *this camera is worth half that!* —
+and anyone within earshot turns and runs. It drains the complaint meter, and
+when the meter is empty Stussy has lost their voice until it recovers.
 
 ## Playing it
 
@@ -46,6 +47,28 @@ the whole game to fit the screen — landscape gives you the most room.
 - The controls appear only during a round. On the title and game over screens a
   tap anywhere starts the game — including the corner where the d-pad sits.
 
+## The levels
+
+Most levels are a freshly generated garden, but two are drawn by hand.
+
+| # | Level | Collect | Chasers |
+| --- | --- | --- | --- |
+| 1, 4+ | the garden | mushrooms | the photographer and Maryellen |
+| 2 | **The Mansion** | cheese and crackers | the photographer and **Charteris Bay Man** |
+| 3 | **Strait of Stussy** | sugared doughnuts | the photographer and Maryellen |
+
+**The Mansion** is a two-storey Wellington villa of the Mt Victoria sort:
+four bedrooms off an upstairs hallway, a staircase down the middle of the house,
+and a lounge and kitchen either side of the downstairs hall. The beds and sofas
+are what the people step over. The rival here is Charteris Bay Man — an aging
+rocker in glasses, denim jacket, black jeans and Chuck Taylors, whose entire
+contribution is "FUCK OFF STUSSY".
+
+**Strait of Stussy** is the Victoria Street block: long straight streets, a
+grid of lanes and the angled corner where Victoria meets Bond. Planter boxes and
+low walls line the footpaths, and the people stride straight over them while
+Stussy goes the long way round.
+
 ## The rules in full
 
 - **Nine mushrooms per level.** Clear them all to move on. Every level is a
@@ -64,8 +87,8 @@ the whole game to fit the screen — landscape gives you the most room.
   500 + 100 × level for clearing the garden.
 - **They talk.** Get within seven tiles and they start on you — Maryellen wants
   to know where your rent is, the photographer threatens a bad review on
-  Trademe — and whoever catches Stussy gets the last word. Scare one off and it
-  shuts up while it runs.
+  Trademe, Charteris Bay Man just tells Stussy to get lost — and whoever catches
+  Stussy gets the last word. Scare one off and it shuts up while it runs.
 - **The two chasers behave differently.** The photographer heads straight for
   Stussy. Maryellen aims a few tiles ahead of where Stussy is going, trying to
   cut them off — so doubling back can beat her.
@@ -76,18 +99,36 @@ Later levels grow more hedges and the chasers get quicker.
 
 ```
 index.html      page shell, C64-ish framing, loads the four scripts
-src/maze.js     level generation: maze carving, hedge/tree mix, mushroom placing
+src/maze.js     level building: generated gardens, plus the two hand-drawn maps
 src/sprites.js  all the art — characters and tiles drawn as rectangles
 src/audio.js    WebAudio bleeps, synthesised on the fly
-src/game.js     game loop, movement, chase AI, complaint meter, touch
-                controls, HUD, screens
+src/music.js    the soundtrack, sequenced live
+src/game.js     game loop, movement, chase AI, complaint meter, level themes,
+                touch controls, HUD, screens
 tests/          headless browser tests
 ```
+
+Levels are themed rather than special-cased: a theme names the painters for the
+ground, the low obstacles and the solid ones, the collectible, and who the
+second chaser is, so a new level is a map plus a table entry.
 
 Stussy moves in the Pac-Man style: walking along a corridor and turning when
 near enough to a tile centre. The chasers step tile to tile, picking each
 step from a breadth-first distance field over everything they can cross —
 grass *and* hedges. When they are fleeing they read the same field backwards.
+
+## The music
+
+`src/music.js` sequences an original chiptune trance loop — 136 BPM,
+four-on-the-floor kick, offbeat bass, a sixteenth-note arpeggio through an
+i–VI–III–VII progression in A minor, a detuned supersaw hook, a dotted-eighth
+delay, and a 32-bar arrangement that drops to a breakdown and builds back in on
+a snare roll. Nothing is sampled: it is oscillators and a noise buffer,
+scheduled a fraction of a second ahead of the audio clock so the timing does not
+depend on the frame rate.
+
+It starts with the game, stops when you pause, and `M` mutes it along with
+everything else.
 
 ## Tests
 
@@ -95,8 +136,9 @@ The tests drive the real game in headless Chromium.
 
 ```bash
 npm install playwright-core          # plus a Chromium build
-CHROMIUM=/path/to/chrome node tests/rules.test.js        # 14 rule checks
+CHROMIUM=/path/to/chrome node tests/rules.test.js        # 26 rule checks
 CHROMIUM=/path/to/chrome node tests/mobile.test.js       # 11 touch checks
+CHROMIUM=/path/to/chrome node tests/music.test.js        # 6 soundtrack checks
 CHROMIUM=/path/to/chrome node tests/autoplay.test.js 90  # bot plays for 90s
 ```
 
@@ -104,8 +146,11 @@ CHROMIUM=/path/to/chrome node tests/autoplay.test.js 90  # bot plays for 90s
 never ends up on a hedge or a tree, that the humans do cross hedges and don't
 cross trees, the whole complaint-meter lifecycle including losing your voice,
 scaring, capture, life loss, respawn, game over, restart, and that levels 1–12
-each contain nine mushrooms Stussy can actually walk to. It exits non-zero on
-failure.
+each contain nine mushrooms Stussy can actually walk to. It also covers the two
+hand-drawn levels: that they are themed and stocked correctly, that Charteris
+Bay Man replaces Maryellen in the villa and says his piece, and that indoors the
+hedge rule still bites — Stussy cannot cross the furniture while a chaser walks
+straight over a sofa to reach her. It exits non-zero on failure.
 
 `mobile.test.js` runs an emulated touch phone in landscape and drives the
 on-screen controls: that the canvas fits the viewport, that the d-pad walks and
@@ -113,6 +158,11 @@ steers (including sliding the thumb between directions), that the complain
 button drains the meter and scares a chaser, that walking and complaining work
 together on two fingers, and that taps start and restart the game without the
 d-pad corner swallowing them.
+
+`music.test.js` taps the music bus with an analyser, records a loudness envelope
+and autocorrelates it: the track has to be audible and to pulse on the beat at
+136 BPM, the arrangement has to advance, pausing has to stop it and `M` has to
+silence it.
 
 `autoplay.test.js` runs a pathfinding bot that plays for real, clearing levels
 while yelling at anyone who gets close — a check that a full session runs

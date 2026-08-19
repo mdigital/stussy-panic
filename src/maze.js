@@ -154,12 +154,115 @@
     return { x: 1, y: 1 };
   }
 
+  /* --------------------------------------------------- hand-drawn levels ----
+   * Two levels are drawn by hand rather than generated.
+   *
+   *   #  solid (nobody through it)     n  low enough for a person to step over
+   *   .  open ground                   c  the thing you are collecting
+   *   S  Stussy   P  photographer      R  the rival chaser
+   *
+   * THE MANSION — a two-storey Wellington villa of the Mt Victoria sort:
+   * bedrooms off an upstairs hallway, a staircase down the middle, lounge and
+   * kitchen either side of the downstairs hall. The furniture is what the
+   * people step over.
+   */
+  var MANSION = [
+    '#########################',
+    '#..c..#.....#..c..#....P#',
+    '#.nn..#.nn..#.nn..#.nn..#',
+    '####.#####.#####.#####.##',
+    '#...........R...........#',
+    '##.#####.#####.#####.####',
+    '#..nn.#..c..#..nn.#..c..#',
+    '#.......................#',
+    '############T############',
+    '#..........#.#..........#',
+    '#.nn....c.......c....nn.#',
+    '#..........#.#..........#',
+    '#....nn....#.#....nn....#',
+    '#..c.......#.#.......c..#',
+    '#...nn.............nn...#',
+    '#S....c....#.#..........#',
+    '#########################'
+  ];
+
+  /* STRAIT OF STUSSY — the Victoria Street block: long straight streets, a
+   * lane grid, and the angled corner where Victoria meets Bond. Planter boxes
+   * and low walls line the footpaths, and the people stride straight over them.
+   */
+  var STRAIT = [
+    '#########################',
+    '#..c................c..P#',
+    '#.######.#######.######.#',
+    '#.######n#######n######.#',
+    '#.######.#######.######n#',
+    '#...........n...........#',
+    '#c######.#######.######c#',
+    '#.#####...######.######.#',
+    '#...nc......n......cn...#',
+    '#.#####....#####.######.#',
+    '#n######..######n######.#',
+    '#.######c#######.######.#',
+    '#....n.............n....#',
+    '#.######n#######c######.#',
+    '#.######.#######.######.#',
+    '#S.........c...........R#',
+    '#########################'
+  ];
+
+  var HAND_DRAWN = { 2: MANSION, 3: STRAIT };
+  var THEMES = { 2: 'mansion', 3: 'strait' };
+
+  // Which look a level wears — the generated ones are all gardens.
+  function themeFor(level) {
+    return THEMES[level] || 'garden';
+  }
+
+  function fromMap(map) {
+    var grid = makeGrid(TREE);
+    var catSpawn = { x: 1, y: 1 };
+    var photo = { x: COLS - 2, y: 1 };
+    var rival = { x: COLS - 2, y: ROWS - 2 };
+    var pickups = [];
+    var decor = [];
+
+    for (var y = 0; y < ROWS; y++) {
+      var row = map[y] || '';
+      for (var x = 0; x < COLS; x++) {
+        var ch = row.charAt(x) || '#';
+        switch (ch) {
+          case '#': grid[y][x] = TREE; break;
+          case 'n': grid[y][x] = HEDGE; break;
+          case 'c': grid[y][x] = FLOOR; pickups.push({ x: x, y: y }); break;
+          case 'S': grid[y][x] = FLOOR; catSpawn = { x: x, y: y }; break;
+          case 'P': grid[y][x] = FLOOR; photo = { x: x, y: y }; break;
+          case 'R': grid[y][x] = FLOOR; rival = { x: x, y: y }; break;
+          case 'T': grid[y][x] = FLOOR; decor.push({ x: x, y: y, kind: 'stairs' }); break;
+          default:  grid[y][x] = FLOOR;
+        }
+      }
+    }
+
+    return {
+      grid: grid,
+      cols: COLS,
+      rows: ROWS,
+      catSpawn: catSpawn,
+      spawns: { photographer: photo, landlord: rival },
+      mushrooms: pickups,
+      decor: decor,
+      reachable: catDistanceField(grid, catSpawn.x, catSpawn.y)
+    };
+  }
+
   /**
    * Build a playable level.
    * @param {number} level  1-based level number; higher levels grow more hedges.
    * @param {number} seed   PRNG seed.
    */
   function generate(level, seed) {
+    if (HAND_DRAWN[level]) return fromMap(HAND_DRAWN[level]);
+
     var rng = makeRng(seed);
     var attempt = 0;
 
@@ -197,6 +300,7 @@
     COLS: COLS,
     ROWS: ROWS,
     MUSHROOMS_PER_LEVEL: MUSHROOMS_PER_LEVEL,
+    themeFor: themeFor,
     generate: generate,
     makeRng: makeRng
   };

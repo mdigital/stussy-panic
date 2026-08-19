@@ -34,9 +34,62 @@
   var ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
 
+  // What Stussy yells to drive them off. Entries with two lines are split here
+  // rather than wrapped, so each one breaks where it reads best.
+  // Each level wears a theme: what the ground, the low obstacles, the solid
+  // obstacles and the collectible look like, and who the second chaser is.
+  var THEMES = {
+    garden: {
+      name: null,
+      subtitle: 'nine mushrooms — mind the hedges',
+      cleared: 'GARDEN CLEARED!',
+      floor: S.grass, low: S.hedge, solid: S.tree,
+      solidOverhead: true,          // tree canopies overhang, so draw them last
+      pickup: S.mushroom,
+      rival: {
+        draw: S.landlord,
+        lines: ["WHERE'S YOUR RENT!?"],
+        caught: 'CAUGHT BY MARYELLEN!'
+      }
+    },
+    mansion: {
+      name: 'THE MANSION',
+      subtitle: 'nine cheese and crackers — mind the furniture',
+      cleared: 'MANSION CLEARED!',
+      floor: S.floor, low: S.furniture, solid: S.wall,
+      solidOverhead: false,
+      pickup: S.cheese,
+      decor: { stairs: S.stairs },
+      rival: {
+        draw: S.rocker,
+        lines: ['FUCK OFF STUSSY'],
+        caught: 'SEEN OFF BY CHARTERIS BAY MAN!'
+      }
+    },
+    strait: {
+      name: 'STRAIT OF STUSSY',
+      subtitle: 'nine sugared doughnuts — mind the planters',
+      cleared: 'STREET CLEARED!',
+      floor: S.street, low: S.planter, solid: S.building,
+      solidOverhead: false,
+      pickup: S.doughnut,
+      rival: {
+        draw: S.landlord,
+        lines: ["WHERE'S YOUR RENT!?"],
+        caught: 'CAUGHT BY MARYELLEN!'
+      }
+    }
+  };
+
   var COMPLAINTS = [
-    'MEOW!', 'MRRRAOW!', 'SHOO!', 'HISSS!', 'NOT NOW!',
-    'MY MUSHROOMS!', 'GO AWAY!', 'YEEOWL!'
+    ["THAT'S NOT PALEO!"],
+    ['THE LIFT IS', 'BROKEN AGAIN!'],
+    ['THIS CAMERA IS', 'WORTH HALF THAT!'],
+    ['MEOW!'],
+    ['MRRRAOW!'],
+    ['NOT NOW!'],
+    ['MY MUSHROOMS!'],
+    ['GO AWAY!']
   ];
 
   // What the two of them shout when they close in on Stussy. Split into lines
@@ -234,8 +287,10 @@
   function loadLevel(level) {
     var data = M.generate(level, level * 7919 + 104729);
     game.level = level;
+    game.theme = THEMES[M.themeFor(level)] || THEMES.garden;
     game.grid = data.grid;
     game.mushrooms = data.mushrooms.map(function (m) { return { x: m.x, y: m.y, taken: false }; });
+    game.decor = data.decor || [];
     game.remaining = game.mushrooms.length;
 
     game.cat = makeEntity(data.catSpawn, 132, false);
@@ -246,7 +301,7 @@
     game.photographer = makeEntity(data.spawns.photographer, photoSpeed, true);
     game.landlord = makeEntity(data.spawns.landlord, marySpeed, true);
     game.photographer.lines = TAUNTS.photographer;
-    game.landlord.lines = TAUNTS.landlord;
+    game.landlord.lines = game.theme.rival.lines;
     game.enemies = [game.photographer, game.landlord];
 
     game.complaint = COMPLAINT_MAX;
@@ -545,7 +600,9 @@
       if (e.flee > 0) continue;                    // too busy fleeing to grab anyone
       var dx = e.x - game.cat.x, dy = e.y - game.cat.y;
       if (dx * dx + dy * dy < CATCH_DIST * CATCH_DIST) {
-        game.caughtBy = (e === game.photographer) ? 'SNAPPED BY THE PHOTOGRAPHER!' : 'CAUGHT BY MARYELLEN!';
+        game.caughtBy = (e === game.photographer)
+          ? 'SNAPPED BY THE PHOTOGRAPHER!'
+          : game.theme.rival.caught;
         e.tauntTimer = 1.6;
         game.lives--;
         game.state = STATE.CAUGHT;
@@ -578,19 +635,27 @@
 
   function update(dt) {
     if (pressed.KeyM) Sfx.toggleMute();
-    if (pressed.KeyR) { Sfx.complaintStop(); newGame(); game.state = STATE.INTRO; }
+    if (pressed.KeyR) {
+      Sfx.complaintStop();
+      Music.reset();
+      newGame();
+      game.state = STATE.INTRO;
+      Music.start();
+    }
 
     if (game.state === STATE.TITLE) {
       if (pressed.Space || pressed.Enter || pressed.NumpadEnter) {
         game.state = STATE.INTRO;
         game.timer = 2.0;
+        Music.start();
       }
       return;
     }
 
     if (pressed.KeyP && (game.state === STATE.PLAY || game.paused)) {
       game.paused = !game.paused;
-      if (game.paused) Sfx.complaintStop();
+      if (game.paused) { Sfx.complaintStop(); Music.stop(); }
+      else Music.start();
     }
     if (game.paused) return;
 
@@ -623,6 +688,7 @@
               game.best = game.score;
               if (global.localStorage) global.localStorage.setItem('mb_best', String(game.best));
             }
+            Music.reset();
             Sfx.gameOver();
           } else {
             resetPositions();
@@ -640,6 +706,7 @@
         game.timer -= dt;
         if (game.timer <= 0 && (pressed.Space || pressed.Enter)) {
           newGame();
+          Music.start();
         }
         break;
     }
@@ -648,21 +715,35 @@
   /* ------------------------------------------------------------------ draw */
 
   function drawField() {
-    // grass, hedges and mushrooms first; trees go on last so they overlap sprites
+    // Ground and low obstacles first. Solid obstacles come after the sprites
+    // only where they overhang (tree canopies); walls and buildings are drawn
+    // here so characters are never hidden behind them.
+    var theme = game.theme;
     for (var y = 0; y < ROWS; y++) {
       for (var x = 0; x < COLS; x++) {
         var t = game.grid[y][x];
         var px = x * TILE, py = y * TILE;
-        if (t === HEDGE) S.hedge(ctx, px, py, TILE, x, y);
-        else S.grass(ctx, px, py, TILE, x, y);
+        if (t === HEDGE) theme.low(ctx, px, py, TILE, x, y);
+        else if (t === TREE && !theme.solidOverhead) theme.solid(ctx, px, py, TILE, x, y);
+        else if (t === TREE) theme.floor(ctx, px, py, TILE, x, y);
+        else theme.floor(ctx, px, py, TILE, x, y);
       }
+    }
+
+    // fixtures that sit on the ground, like the villa's staircase
+    if (theme.decor) {
+      game.decor.forEach(function (d) {
+        var paint = theme.decor[d.kind];
+        if (paint) paint(ctx, d.x * TILE, d.y * TILE, TILE, d.x, d.y);
+      });
     }
   }
 
-  function drawTrees() {
+  function drawSolidsOverhead() {
+    if (!game.theme.solidOverhead) return;
     for (var y = 0; y < ROWS; y++) {
       for (var x = 0; x < COLS; x++) {
-        if (game.grid[y][x] === TREE) S.tree(ctx, x * TILE, y * TILE, TILE, x, y);
+        if (game.grid[y][x] === TREE) game.theme.solid(ctx, x * TILE, y * TILE, TILE, x, y);
       }
     }
   }
@@ -672,7 +753,7 @@
       if (m.taken) return;
       var bob = ((t * 2 + i * 0.6) % 2) < 1;
       S.stamp(ctx, m.x * TILE + TILE / 2, m.y * TILE + TILE / 2, TILE, false, function (c) {
-        S.mushroom(c, bob);
+        game.theme.pickup(c, bob);
       });
     });
   }
@@ -708,7 +789,7 @@
       shadow(e.x, e.y + wobble, 20);
       S.stamp(ctx, e.x, e.y + wobble, TILE + 4, e.dir.x < 0, function (c) {
         if (e === game.photographer) S.photographer(c, ef, e.flee > 0);
-        else S.landlord(c, ef, e.flee > 0);
+        else game.theme.rival.draw(c, ef, e.flee > 0);
       });
     });
 
@@ -812,7 +893,7 @@
     // mushrooms still out there
     ctx.fillText('LEFT', 350, top + 22);
     for (var m = 0; m < game.remaining; m++) {
-      S.stamp(ctx, 404 + m * 16, top + 17, 18, false, function (c) { S.mushroom(c, false); });
+      S.stamp(ctx, 404 + m * 16, top + 17, 18, false, function (c) { game.theme.pickup(c, false); });
     }
 
     // complaint meter
@@ -983,7 +1064,7 @@
     drawField();
     drawMushrooms(t);
     drawCharacters();
-    drawTrees();
+    drawSolidsOverhead();
     drawOverlays();
     drawFloaters();
 
@@ -992,11 +1073,11 @@
     drawTouchControls();
 
     if (game.state === STATE.INTRO) {
-      banner('LEVEL ' + game.level, 'nine mushrooms — mind the hedges');
+      banner(game.theme.name || ('LEVEL ' + game.level), game.theme.subtitle);
     } else if (game.state === STATE.CAUGHT) {
       banner(game.caughtBy, game.lives >= 0 ? (game.lives === 1 ? '1 Stussy left' : game.lives + ' Stussys left') : '');
     } else if (game.state === STATE.CLEAR) {
-      banner('GARDEN CLEARED!', 'bonus ' + (500 + game.level * 100) + ' — on to level ' + (game.level + 1));
+      banner(game.theme.cleared, 'bonus ' + (500 + game.level * 100) + ' — on to level ' + (game.level + 1));
     } else if (game.state === STATE.OVER) {
       banner('GAME OVER', 'score ' + game.score + (touch.enabled ? '  ·  tap to play again' : '  ·  press SPACE to play again'));
     } else if (game.paused) {
@@ -1021,5 +1102,8 @@
   global.requestAnimationFrame(frame);
 
   // exposed for debugging in the console
-  global.MushroomBother = { get state() { return game; } };
+  global.MushroomBother = {
+    get state() { return game; },
+    goToLevel: function (n) { loadLevel(n); }
+  };
 })(window);

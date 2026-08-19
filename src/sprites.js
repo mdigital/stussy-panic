@@ -43,7 +43,54 @@
     capRed:    '#c8392f',
     capDark:   '#8f231c',
     stem:      '#f0e2c0',
-    stemDark:  '#c9b48d'
+    stemDark:  '#c9b48d',
+
+    // The Mansion — a Wellington villa
+    plank:     '#b98a52',
+    plankAlt:  '#ae7f47',
+    plankDark: '#9a6c39',
+    wallTop:   '#e7dcc4',
+    wallLit:   '#f4ecdb',
+    dado:      '#7b4a24',
+    dadoDark:  '#5b3418',
+    skirting:  '#efe7d6',
+    sofa:      '#8c4a3f',
+    sofaLit:   '#a85e50',
+    sofaDark:  '#5e2e27',
+    cheese:    '#f2c33c',
+    cheeseDk:  '#c9971f',
+    cracker:   '#d8a55f',
+    crackerDk: '#a97b3d',
+
+    // Strait of Stussy — the Victoria Street block
+    road:      '#9195a0',
+    roadAlt:   '#888c97',
+    roadLine:  '#efe9d2',
+    kerb:      '#b6bac4',
+    concrete:  '#3b4150',
+    concreteD: '#242936',
+    concreteL: '#535a6c',
+    window:    '#6f8db3',
+    windowLit: '#e8c979',
+    planter:   '#7a5a3c',
+    planterDk: '#553d27',
+    shrub:     '#3f7a43',
+    shrubLit:  '#5aa055',
+    dough:     '#d9a05c',
+    doughLit:  '#e8bf7e',
+    doughDk:   '#a97540',
+    sugar:     '#fdf6e8',
+
+    // Charteris Bay Man
+    denim:     '#4a6f9c',
+    denimDk:   '#33507a',
+    denimLit:  '#6a8fbc',
+    jeans:     '#23232a',
+    jeansDk:   '#141419',
+    chuck:     '#f2efe6',
+    rockHair:  '#8d8a93',
+    rockHairD: '#3b3740',
+    specs:     '#20202a'
   };
 
   // Rectangle helper in sprite units.
@@ -304,6 +351,224 @@
     }
   }
 
+  /* ------------------------------------------------- The Mansion: tiles */
+
+  // Kauri floorboards running across the room.
+  function drawFloor(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = (ty & 1) ? C.plank : C.plankAlt;
+    ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = C.plankDark;
+    ctx.fillRect(px, py + 8 * u, size, u);        // one board seam per tile
+    var n = tileNoise(tx, ty);
+    if (n > 0.62) {                               // the odd board join
+      ctx.fillStyle = 'rgba(120,80,40,0.35)';
+      ctx.fillRect(px + Math.floor(n * 12) * u, py, u, 8 * u);
+    }
+  }
+
+  // Sofas, beds and dressers: low enough that a person just steps over.
+  function drawFurniture(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    drawFloor(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px, py + 14 * u, size, 2 * u);
+    ctx.fillStyle = C.sofaDark;
+    ctx.fillRect(px, py + 3 * u, size, 12 * u);
+    ctx.fillStyle = C.sofa;
+    ctx.fillRect(px, py + 4 * u, size, 10 * u);
+    ctx.fillStyle = C.sofaLit;
+    ctx.fillRect(px, py + 3 * u, size, 2 * u);          // flat, steppable top
+    ctx.fillStyle = C.sofaDark;
+    ctx.fillRect(px + 5 * u, py + 5 * u, u, 9 * u);     // cushion seams
+    ctx.fillRect(px + 11 * u, py + 5 * u, u, 9 * u);
+    ctx.fillStyle = C.plankDark;
+    ctx.fillRect(px + u, py + 14 * u, 2 * u, 2 * u);    // little feet
+    ctx.fillRect(px + 13 * u, py + 14 * u, 2 * u, 2 * u);
+  }
+
+  // Villa wall: papered above, timber dado below, skirting at the floor.
+  function drawWall(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = C.wallTop;
+    ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = C.wallLit;
+    ctx.fillRect(px, py + u, size, 3 * u);
+    ctx.fillStyle = C.dadoDark;
+    ctx.fillRect(px, py, size, u);                // picture rail, a hard top edge
+    ctx.fillStyle = C.dado;
+    ctx.fillRect(px, py + 12 * u, size, 4 * u);   // slim dado at the bottom
+    ctx.fillStyle = C.dadoDark;
+    ctx.fillRect(px, py + 12 * u, size, u);
+    ctx.fillStyle = C.skirting;
+    ctx.fillRect(px, py + 15 * u, size, u);
+    var n = tileNoise(tx, ty);
+    if (n > 0.66) {                               // a picture hung on the wall
+      ctx.fillStyle = C.dadoDark;
+      ctx.fillRect(px + 4 * u, py + 3 * u, 8 * u, 6 * u);
+      ctx.fillStyle = C.sofa;
+      ctx.fillRect(px + 5 * u, py + 4 * u, 6 * u, 4 * u);
+    } else if (n > 0.4) {
+      ctx.fillStyle = 'rgba(0,0,0,0.05)';
+      ctx.fillRect(px + 3 * u, py + 4 * u, 10 * u, 6 * u);
+    }
+  }
+
+  // The staircase between the two storeys.
+  function drawStairs(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    drawFloor(ctx, px, py, size, tx, ty);
+    for (var i = 0; i < 4; i++) {
+      var y = py + i * 4 * u;
+      ctx.fillStyle = C.plankDark;
+      ctx.fillRect(px, y, size, 4 * u);
+      ctx.fillStyle = C.plank;
+      ctx.fillRect(px + u, y + u, size - 2 * u, 2 * u);
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.fillRect(px, y + 3 * u, size, u);        // the shadow under each tread
+    }
+    ctx.fillStyle = C.dadoDark;                     // banister posts either side
+    ctx.fillRect(px, py, u, size);
+    ctx.fillRect(px + 15 * u, py, u, size);
+  }
+
+  // Cheese and crackers.
+  function drawCheese(ctx, bob) {
+    var y = 3 + (bob ? 1 : 0);
+    r(ctx, 3, y + 6, 11, 3, C.cracker);      // the cracker
+    r(ctx, 3, y + 8, 11, 1, C.crackerDk);
+    r(ctx, 5, y + 7, 1, 1, C.crackerDk);     // docking holes
+    r(ctx, 8, y + 7, 1, 1, C.crackerDk);
+    r(ctx, 11, y + 7, 1, 1, C.crackerDk);
+    r(ctx, 5, y + 2, 7, 4, C.cheese);        // the wedge on top
+    r(ctx, 6, y + 1, 5, 1, C.cheese);
+    r(ctx, 5, y + 5, 7, 1, C.cheeseDk);
+    r(ctx, 7, y + 3, 1, 1, C.cheeseDk);      // holes
+    r(ctx, 9, y + 2, 1, 1, C.cheeseDk);
+  }
+
+  /* --------------------------------------------- Strait of Stussy: tiles */
+
+  function drawStreet(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = (((tx + ty) >> 1) & 1) ? C.road : C.roadAlt;
+    ctx.fillRect(px, py, size, size);
+    var n = tileNoise(tx, ty);
+    if (n > 0.74) {                                   // centre line
+      ctx.fillStyle = C.roadLine;
+      ctx.fillRect(px + 7 * u, py + 3 * u, 2 * u, 10 * u);
+    } else if (n > 0.64) {                            // manhole
+      ctx.fillStyle = C.kerb;
+      ctx.fillRect(px + 5 * u, py + 6 * u, 6 * u, 5 * u);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(px + 6 * u, py + 7 * u, 4 * u, 3 * u);
+    } else if (n > 0.52) {                            // patched seal
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      ctx.fillRect(px + 2 * u, py + 3 * u, 9 * u, 7 * u);
+    }
+  }
+
+  // Street planters and low walls — a person steps straight over them.
+  function drawPlanter(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    drawStreet(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px, py + 14 * u, size, 2 * u);
+    ctx.fillStyle = C.shrub;
+    ctx.fillRect(px + u, py + 2 * u, 14 * u, 6 * u);
+    ctx.fillStyle = C.shrubLit;
+    ctx.fillRect(px + 2 * u, py + 2 * u, 12 * u, 2 * u);
+    ctx.fillStyle = C.planter;
+    ctx.fillRect(px, py + 8 * u, size, 7 * u);
+    ctx.fillStyle = C.planterDk;
+    ctx.fillRect(px, py + 8 * u, size, u);
+    ctx.fillRect(px + 5 * u, py + 9 * u, u, 6 * u);
+    ctx.fillRect(px + 11 * u, py + 9 * u, u, 6 * u);
+  }
+
+  // A block of the street wall: concrete facade, windows lit at random.
+  function drawBuilding(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = C.concrete;
+    ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = C.concreteD;
+    ctx.fillRect(px, py, size, u);            // hard edges top and bottom, so a
+    ctx.fillRect(px, py + 15 * u, size, u);   // block reads as one solid mass
+    ctx.fillStyle = C.concreteL;
+    ctx.fillRect(px, py + u, size, u);
+    var n = tileNoise(tx, ty);
+    for (var wy = 0; wy < 2; wy++) {
+      for (var wx = 0; wx < 2; wx++) {
+        var lit = ((n * (wx + 3) * (wy + 2) * 97) % 1) > 0.7;
+        ctx.fillStyle = lit ? C.windowLit : C.window;
+        ctx.fillRect(px + (3 + wx * 6) * u, py + (4 + wy * 6) * u, 4 * u, 4 * u);
+        ctx.fillStyle = C.concreteD;
+        ctx.fillRect(px + (3 + wx * 6) * u, py + (7 + wy * 6) * u, 4 * u, u);
+      }
+    }
+  }
+
+  // A sugared doughnut.
+  function drawDoughnut(ctx, bob) {
+    var y = 3 + (bob ? 1 : 0);
+    r(ctx, 4, y + 1, 8, 2, C.dough);
+    r(ctx, 3, y + 3, 10, 6, C.dough);
+    r(ctx, 4, y + 9, 8, 2, C.dough);
+    r(ctx, 4, y + 2, 8, 1, C.doughLit);      // top catch-light
+    r(ctx, 3, y + 8, 10, 2, C.doughDk);      // underside
+    r(ctx, 6, y + 4, 4, 4, C.doughDk);       // the hole
+    r(ctx, 7, y + 5, 2, 2, C.road);
+    // sugar crystals
+    r(ctx, 5, y + 3, 1, 1, C.sugar);
+    r(ctx, 10, y + 4, 1, 1, C.sugar);
+    r(ctx, 4, y + 6, 1, 1, C.sugar);
+    r(ctx, 11, y + 7, 1, 1, C.sugar);
+    r(ctx, 8, y + 2, 1, 1, C.sugar);
+    r(ctx, 7, y + 9, 1, 1, C.sugar);
+  }
+
+  /* ------------------------------------------- Charteris Bay Man, the rival */
+
+  function drawRocker(ctx, frame, scared) {
+    var lx = frame === 0 ? 5 : 4, rx = frame === 0 ? 8 : 9;
+    // black jeans and chuck taylors
+    r(ctx, lx, 11, 2, 4, C.jeans);
+    r(ctx, rx, 11, 2, 4, C.jeans);
+    r(ctx, lx - 1, 14, 4, 1, C.jeansDk);
+    r(ctx, rx, 14, 4, 1, C.jeansDk);
+    r(ctx, lx - 1, 15, 4, 1, C.chuck);        // white soles
+    r(ctx, rx, 15, 4, 1, C.chuck);
+    r(ctx, lx + 1, 14, 1, 1, C.chuck);        // toe caps
+    r(ctx, rx + 2, 14, 1, 1, C.chuck);
+
+    // denim jacket
+    r(ctx, 4, 6, 8, 6, C.denim);
+    r(ctx, 4, 6, 8, 1, C.denimLit);
+    r(ctx, 7, 6, 1, 6, C.denimDk);            // button placket
+    r(ctx, 4, 8, 8, 1, C.denimDk);            // yoke seam
+    r(ctx, 4, 6, 1, 6, C.denimDk);
+    r(ctx, 11, 6, 1, 6, C.denimDk);
+    r(ctx, 5, 11, 6, 1, C.denimDk);           // hem
+    r(ctx, 12, 7, 2, 3, C.denim);             // sleeve
+
+    // head, tidy greying hair
+    r(ctx, 5, 2, 6, 5, C.skin);
+    r(ctx, 5, 6, 6, 1, C.skinDark);
+    r(ctx, 4, 1, 8, 2, C.rockHair);
+    r(ctx, 4, 1, 4, 1, C.rockHairD);          // still dark on top, mostly
+    r(ctx, 4, 2, 1, 3, C.rockHair);           // sideburn
+    r(ctx, 11, 2, 1, 2, C.rockHair);
+
+    // glasses
+    r(ctx, 5, 3, 7, 1, C.specs);
+    r(ctx, 5, 3, 2, 2, C.specs);
+    r(ctx, 9, 3, 2, 2, C.specs);
+    r(ctx, 6, 4, 1, 1, C.lens);
+    r(ctx, 10, 4, 1, 1, C.lens);
+    if (scared) { r(ctx, 7, 5, 2, 2, C.black); }
+    else        { r(ctx, 7, 5, 3, 1, C.skinDark); }
+  }
+
   global.Sprites = {
     colors: C,
     stamp: stamp,
@@ -313,6 +578,19 @@
     mushroom: drawMushroom,
     grass: drawGrass,
     hedge: drawHedge,
-    tree: drawTree
+    tree: drawTree,
+
+    floor: drawFloor,
+    furniture: drawFurniture,
+    wall: drawWall,
+    cheese: drawCheese,
+    stairs: drawStairs,
+
+    street: drawStreet,
+    planter: drawPlanter,
+    building: drawBuilding,
+    doughnut: drawDoughnut,
+
+    rocker: drawRocker
   };
 })(window);

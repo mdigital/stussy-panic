@@ -6,7 +6,9 @@
 
   var ctx = null;
   var master = null;
+  var musicBus = null;
   var muted = false;
+  var MUSIC_LEVEL = 0.11;   // the track sits under the sound effects
   var complaintOsc = null, complaintGain = null, complaintLfo = null;
 
   function ensure() {
@@ -48,10 +50,25 @@
   var API = {
     unlock: function () { ensure(); },
 
+    // The shared context and a bus for src/music.js to hang the track off, so
+    // there is only ever one AudioContext and one mute switch.
+    context: function () { return ensure(); },
+
+    musicBus: function () {
+      if (!ensure()) return null;
+      if (!musicBus) {
+        musicBus = ctx.createGain();
+        musicBus.gain.value = muted ? 0 : MUSIC_LEVEL;
+        musicBus.connect(ctx.destination);
+      }
+      return musicBus;
+    },
+
     toggleMute: function () {
       muted = !muted;
       if (muted) API.complaintStop();
       if (master) master.gain.value = muted ? 0 : 0.22;
+      if (musicBus) musicBus.gain.value = muted ? 0 : MUSIC_LEVEL;
       return muted;
     },
 

@@ -164,6 +164,106 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(badLevels.length === 0, 'levels 1-12 each hold 9 mushrooms the cat can walk to' +
      (badLevels.length ? ' — bad: ' + JSON.stringify(badLevels) : ''));
 
+  // ---- 8: the two hand-drawn levels ----------------------------------------
+  const themed = await p.evaluate(() => {
+    const out = {};
+    [1, 2, 3, 4].forEach(lvl => {
+      const d = Maze.generate(lvl, lvl * 7919 + 104729);
+      let low = 0, solid = 0;
+      d.grid.forEach(row => row.forEach(t => {
+        if (t === Maze.HEDGE) low++;
+        if (t === Maze.TREE) solid++;
+      }));
+      out[lvl] = { theme: Maze.themeFor(lvl), pickups: d.mushrooms.length, low: low, solid: solid };
+    });
+    return out;
+  });
+  ok(themed[2].theme === 'mansion' && themed[3].theme === 'strait',
+     'level 2 is The Mansion and level 3 is the Strait of Stussy');
+  ok(themed[1].theme === 'garden' && themed[4].theme === 'garden',
+     'the other levels are still generated gardens');
+  ok(themed[2].pickups === 9 && themed[3].pickups === 9,
+     'both hand-drawn levels hold nine collectibles');
+  ok(themed[2].low > 0 && themed[2].solid > 0 && themed[3].low > 0 && themed[3].solid > 0,
+     'both have furniture/planters to step over and walls/buildings that stop everyone');
+
+  // what each level looks like and who is chasing on it
+  const look = await p.evaluate(async () => {
+    const out = {};
+    for (const lvl of [2, 3]) {
+      window.MushroomBother.goToLevel(lvl);
+      await new Promise(r => setTimeout(r, 60));
+      const g = window.MushroomBother.state;
+      out[lvl] = { name: g.theme.name, rival: g.landlord.lines.join(' '), caught: g.theme.rival.caught };
+    }
+    return out;
+  });
+  ok(look[2].name === 'THE MANSION', 'level 2 announces itself as ' + look[2].name);
+  ok(look[2].rival === 'FUCK OFF STUSSY',
+     'Charteris Bay Man greets Stussy with "' + look[2].rival + '"');
+  ok(/CHARTERIS BAY MAN/.test(look[2].caught), 'he replaces Maryellen on that level');
+  ok(look[3].name === 'STRAIT OF STUSSY', 'level 3 announces itself as ' + look[3].name);
+  ok(look[3].rival === "WHERE'S YOUR RENT!?" && /MARYELLEN/.test(look[3].caught),
+     'Maryellen and the photographer are the pair on the street level');
+
+  // the hedge rule still bites indoors: Stussy cannot cross the furniture
+  await p.evaluate(() => {
+    window.MushroomBother.goToLevel(2);
+    window.__t2 = { catOnBlocked: 0, peopleOnLow: 0, samples: 0 };
+    const T = 32;
+    window.__probe2 = setInterval(() => {
+      const g = window.MushroomBother.state;
+      if (g.state !== 'play') return;
+      const at = e => g.grid[Math.floor(e.y / T)][Math.floor(e.x / T)];
+      window.__t2.samples++;
+      if (at(g.cat) !== Maze.FLOOR) window.__t2.catOnBlocked++;
+      g.enemies.forEach(e => { if (at(e) === Maze.HEDGE) window.__t2.peopleOnLow++; });
+    }, 30);
+  });
+  await p.waitForTimeout(2400);
+  for (let i = 0; i < 24; i++) {
+    const k = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'][i % 4];
+    await p.keyboard.down(k); await p.waitForTimeout(200); await p.keyboard.up(k);
+  }
+  const t2 = await p.evaluate(() => { clearInterval(window.__probe2); return window.__t2; });
+  console.log('   mansion samples:', JSON.stringify(t2));
+  ok(t2.catOnBlocked === 0, 'in the villa Stussy never walks through furniture or a wall');
+  console.log('   (roaming samples caught them on furniture ' + t2.peopleOnLow + ' times — the villa\'s' +
+              ' furniture is mostly off their shortest routes, so put it to them directly:)');
+
+  // Deterministic version: stand Stussy the far side of a sofa and see whether
+  // the chaser walks over it rather than around.
+  const stepped = await p.evaluate(async () => {
+    const g = window.MushroomBother.state, T = 32;
+    // find a piece of furniture with clear floor above and below it
+    let spot = null;
+    for (let y = 1; y < Maze.ROWS - 1 && !spot; y++) {
+      for (let x = 1; x < Maze.COLS - 1 && !spot; x++) {
+        if (g.grid[y][x] === Maze.HEDGE &&
+            g.grid[y - 1][x] === Maze.FLOOR && g.grid[y + 1][x] === Maze.FLOOR) {
+          spot = { x: x, y: y };
+        }
+      }
+    }
+    if (!spot) return { spot: null };
+
+    g.grace = 60;
+    g.cat.x = spot.x * T + T / 2; g.cat.y = (spot.y + 1) * T + T / 2;
+    const e = g.landlord;
+    e.flee = 0; e.tauntTimer = 0;
+    e.x = spot.x * T + T / 2; e.y = (spot.y - 1) * T + T / 2;
+    e.tx = spot.x; e.ty = spot.y - 1; e.prev = { x: spot.x, y: spot.y - 2 };
+
+    let crossed = false;
+    for (let i = 0; i < 90; i++) {
+      await new Promise(r => setTimeout(r, 20));
+      if (Math.floor(e.x / T) === spot.x && Math.floor(e.y / T) === spot.y) crossed = true;
+    }
+    return { spot: spot, crossed: crossed };
+  });
+  ok(stepped.spot && stepped.crossed,
+     'a chaser walks straight over a sofa at ' + JSON.stringify(stepped.spot) + ' to reach Stussy');
+
   console.log('\nERRORS:', errors.length ? errors.join('\n') : 'none');
   await b.close();
   if (failures || errors.length) {
