@@ -723,7 +723,7 @@
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = 'bold ' + Math.round(size * 0.42) + 'px "Courier New", monospace';
+    ctx.font = 'bold ' + Math.round(size * 0.42) + 'px "Stussy64", "Courier New", monospace';
     ctx.fillStyle = C.signText;
     ctx.fillText('PROFILE PHOTOS', board.x + board.w / 2, py + 9.2 * u);
     ctx.restore();
@@ -1191,7 +1191,7 @@
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = 'bold ' + Math.round(size * 0.6) + 'px "Courier New", monospace';
+    ctx.font = 'bold ' + Math.round(size * 0.6) + 'px "Stussy64", "Courier New", monospace';
     ctx.fillStyle = C.pnsYellow;
     ctx.fillText("PAK'nSAVE", px + (W / 2) * u, py + 15 * u);
     ctx.restore();
@@ -1481,7 +1481,7 @@
 
     // her name, painted on the side
     ctx.save();
-    ctx.font = 'bold ' + Math.max(8, Math.round(size * 0.28)) + 'px "Courier New", monospace';
+    ctx.font = 'bold ' + Math.max(8, Math.round(size * 0.28)) + 'px "Stussy64", "Courier New", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = C.hullDark;

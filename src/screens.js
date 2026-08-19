@@ -79,17 +79,17 @@
       var c = BARS[(Math.floor(i - t * 7) % BARS.length + BARS.length) % BARS.length];
       grad.addColorStop(Math.min(1, i / 8), c);
     }
-    outlinedText(ctx, 'CRACKED BY', W / 2, 214, 'bold 40px "Courier New", monospace', grad, '#000000', 8);
-    outlinedText(ctx, 'GET FUCKED', W / 2, 268, 'bold 54px "Courier New", monospace', grad, '#000000', 9);
-    outlinedText(ctx, 'INDUSTRIES', W / 2, 316, 'bold 54px "Courier New", monospace', grad, '#000000', 9);
+    outlinedText(ctx, 'CRACKED BY', W / 2, 206, 'bold 34px "Stussy64", "Courier New", monospace', grad, '#000000', 8);
+    outlinedText(ctx, 'GET FUCKED', W / 2, 262, 'bold 46px "Stussy64", "Courier New", monospace', grad, '#000000', 9);
+    outlinedText(ctx, 'INDUSTRIES', W / 2, 314, 'bold 46px "Stussy64", "Courier New", monospace', grad, '#000000', 9);
 
     // the prompt, blinking as it should
     if (Math.floor(t * 2) % 2 === 0) {
-      outlinedText(ctx, 'PRESS SPACE', W / 2, 404, 'bold 24px "Courier New", monospace', '#ffffff', '#000000', 6);
+      outlinedText(ctx, 'PRESS SPACE', W / 2, 404, 'bold 24px "Stussy64", "Courier New", monospace', '#ffffff', '#000000', 6);
     }
 
     // and a scroller along the bottom, wobbling on a sine
-    ctx.font = 'bold 22px "Courier New", monospace';
+    ctx.font = 'bold 22px "Stussy64", "Courier New", monospace';
     ctx.textAlign = 'left';
     var charW = ctx.measureText('M').width;
     var total = SCROLL_TEXT.length * charW;
@@ -186,9 +186,9 @@
     g.addColorStop(0.45, '#ff9c3a');
     g.addColorStop(0.75, '#e2582c');
     g.addColorStop(1, '#8f2318');
-    outlinedText(ctx, 'STUSSY', 0, 0, 'bold 74px "Courier New", monospace', g, '#1a0d08', 10);
+    outlinedText(ctx, 'STUSSY', 0, 0, 'bold 74px "Stussy64", "Courier New", monospace', g, '#1a0d08', 10);
     ctx.rotate(0.16);
-    outlinedText(ctx, 'PANIC', 26, 66, 'bold 74px "Courier New", monospace', g, '#1a0d08', 10);
+    outlinedText(ctx, 'PANIC', 26, 66, 'bold 74px "Stussy64", "Courier New", monospace', g, '#1a0d08', 10);
     ctx.restore();
   }
 
@@ -267,10 +267,10 @@
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, H - 78, W, 46);
     outlinedText(ctx, '© 1987 GET FUCKED INDUSTRIES', W / 2, H - 56,
-                 'bold 22px "Courier New", monospace', '#6c5eb5', '#000000', 4);
+                 'bold 22px "Stussy64", "Courier New", monospace', '#6c5eb5', '#000000', 4);
     var dots = '.'.repeat(1 + (Math.floor(t * 3) % 3));
     outlinedText(ctx, 'LOADING' + dots, W / 2, H - 34,
-                 'bold 22px "Courier New", monospace', '#ffffff', '#000000', 4);
+                 'bold 22px "Stussy64", "Courier New", monospace', '#ffffff', '#000000', 4);
   }
 
   global.Screens = {

@@ -345,7 +345,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
      'Peter Jackson says: ' + look[6].sayings.map(l => '"' + l + '"').join(' and '));
   ok(/ALIEN/.test(look[6].photogCaught) && look[6].photogSayings.length > 0,
      'and an alien has taken the photographer\'s place — caught banner "' + look[6].photogCaught + '"');
-  ok(look[5].photogCaught === 'SNAPPED BY THE PHOTOGRAPHER!',
+  ok(look[5].photogCaught === 'SNAPPED BY RIVAL PHOTOGRAPHER!',
      'while on every other level the photographer is still himself');
   const wantStaff = ['CLUB+ CARD?', 'SECURITY TO AISLE 3'];
   ok(wantStaff.every(l => look[5].sayings.indexOf(l) >= 0) &&

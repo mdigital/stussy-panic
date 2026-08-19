@@ -429,7 +429,7 @@
     var photog = game.theme.photog;
     game.photographer.sayings = photog ? photog.sayings : TAUNTS.photographer;
     game.photographer.draw = photog ? photog.draw : S.photographer;
-    game.photographer.caughtText = photog ? photog.caught : 'SNAPPED BY THE PHOTOGRAPHER!';
+    game.photographer.caughtText = photog ? photog.caught : 'SNAPPED BY RIVAL PHOTOGRAPHER!';
     game.landlord.sayings = game.theme.rival.sayings;
     game.landlord.draw = game.theme.rival.draw;
     game.landlord.caughtText = game.theme.rival.caught;
@@ -1135,7 +1135,7 @@
       ctx.fillStyle = '#fff36b';
       ctx.strokeStyle = '#2b2540';
       ctx.lineWidth = 3;
-      ctx.font = 'bold 18px "Courier New", monospace';
+      ctx.font = 'bold 18px "Stussy64", "Courier New", monospace';
       ctx.textAlign = 'center';
       ctx.strokeText('!', e.x, e.y - 20);
       ctx.fillText('!', e.x, e.y - 20);
@@ -1180,7 +1180,7 @@
   // back down at whoever is talking.
   function drawSpeechBubble(x, y, text) {
     var lines = (typeof text === 'string') ? [text] : text;
-    ctx.font = 'bold 12px "Courier New", monospace';
+    ctx.font = 'bold 12px "Stussy64", "Courier New", monospace';
     ctx.textAlign = 'center';
 
     var w = 0;
@@ -1211,7 +1211,7 @@
 
   function drawFloaters() {
     ctx.textAlign = 'center';
-    ctx.font = 'bold 13px "Courier New", monospace';
+    ctx.font = 'bold 13px "Stussy64", "Courier New", monospace';
     game.floaters.forEach(function (f) {
       ctx.globalAlpha = Math.max(0, Math.min(1, f.life));
       ctx.fillStyle = '#20182e';
@@ -1234,37 +1234,38 @@
     ctx.fillRect(0, top, PLAY_W, 2);
 
     ctx.textAlign = 'left';
-    ctx.font = 'bold 15px "Courier New", monospace';
+    ctx.font = 'bold 12px "Stussy64", "Courier New", monospace';
     ctx.fillStyle = '#b8b0ff';
     ctx.fillText('SCORE ' + fmtScore(game.score), 12, top + 22);
     ctx.fillText('LEVEL ' + game.level, 12, top + 42);
 
-    ctx.fillText('BEST ' + fmtScore(game.best), 150, top + 22);
+    ctx.fillText('BEST ' + fmtScore(game.best), 180, top + 22);
 
     // lives, as little cat heads
-    ctx.fillText('STUSSY', 150, top + 42);
+    ctx.fillText('STUSSY', 180, top + 42);
     for (var i = 0; i < Math.min(game.lives, 6); i++) {
-      S.stamp(ctx, 236 + i * 20, top + 37, 20, false, function (c) {
+      S.stamp(ctx, 268 + i * 20, top + 37, 20, false, function (c) {
         S.cat(c, 0, false);
       });
     }
 
-    // the speaker, once it is in the basket and the law is involved
-    if (game.police) {
-      S.stamp(ctx, 330, top + 28, 22, false, function (c) { game.theme.bonus.draw(c, false); });
+    // mushrooms still out there
+    ctx.fillText('LEFT', 390, top + 22);
+    for (var m = 0; m < game.remaining; m++) {
+      S.stamp(ctx, 452 + m * 16, top + 17, 18, false, function (c) { game.theme.pickup(c, false); });
     }
 
-    // mushrooms still out there
-    ctx.fillText('LEFT', 350, top + 22);
-    for (var m = 0; m < game.remaining; m++) {
-      S.stamp(ctx, 404 + m * 16, top + 17, 18, false, function (c) { game.theme.pickup(c, false); });
+    // the bonus item, once it is in the basket and the law is involved
+    if (game.police) {
+      S.stamp(ctx, 616, top + 17, 22, false, function (c) { game.theme.bonus.draw(c, false); });
     }
 
     // complaint meter
-    var mx = 350, my = top + 32, mw = 260, mh = 14;
+    var my = top + 32, mh = 14;
+    ctx.font = 'bold 10px "Stussy64", "Courier New", monospace';
     ctx.fillStyle = '#b8b0ff';
-    ctx.fillText('COMPLAINT', mx, my + 12);
-    var bx = mx + 100;
+    ctx.fillText('COMPLAINT', 390, my + 12);
+    var bx = 488, mw = 204;
     ctx.fillStyle = '#171340';
     ctx.fillRect(bx, my, mw, mh);
     var pct = game.complaint / COMPLAINT_MAX;
@@ -1276,14 +1277,14 @@
     ctx.strokeRect(bx + 0.5, my + 0.5, mw - 1, mh - 1);
     if (game.exhausted) {
       ctx.fillStyle = '#ff9c85';
-      ctx.font = 'bold 11px "Courier New", monospace';
-      ctx.fillText('LOST YOUR VOICE', bx + mw + 8, my + 11);
+      ctx.font = 'bold 9px "Stussy64", "Courier New", monospace';
+      ctx.fillText('NO VOICE', bx + mw + 8, my + 11);
     }
 
     ctx.textAlign = 'right';
-    ctx.font = 'bold 11px "Courier New", monospace';
+    ctx.font = 'bold 9px "Stussy64", "Courier New", monospace';
     ctx.fillStyle = '#7d74d0';
-    ctx.fillText(Sfx.isMuted() ? 'M: SOUND OFF' : 'M: SOUND ON', PLAY_W - 10, top + 48);
+    ctx.fillText(Sfx.isMuted() ? 'M: SOUND OFF' : 'M: SOUND ON', PLAY_W - 8, top + 53);
   }
 
   function drawTouchControls() {
@@ -1340,9 +1341,9 @@
     ctx.globalAlpha = 1;
     ctx.textAlign = 'center';
     ctx.fillStyle = game.exhausted ? '#ff9c85' : (down ? '#fff3b0' : '#e6e1ff');
-    ctx.font = 'bold 19px "Courier New", monospace';
+    ctx.font = 'bold 19px "Stussy64", "Courier New", monospace';
     ctx.fillText(game.exhausted ? 'NO' : 'YOWL', YELL.cx, YELL.cy - 1);
-    ctx.font = 'bold 11px "Courier New", monospace';
+    ctx.font = 'bold 11px "Stussy64", "Courier New", monospace';
     ctx.fillText(game.exhausted ? 'VOICE' : 'COMPLAIN', YELL.cx, YELL.cy + 17);
     ctx.restore();
   }
@@ -1355,11 +1356,15 @@
     ctx.fillRect(0, PLAY_H / 2 + 67, PLAY_W, 3);
     ctx.textAlign = 'center';
     ctx.fillStyle = '#fff3b0';
-    ctx.font = 'bold 30px "Courier New", monospace';
+    // the font is monospaced with advance equal to its size, so fitting a line
+    // to the screen is plain division
+    var hs = Math.min(30, Math.floor((PLAY_W - 40) / Math.max(1, lines.length)));
+    ctx.font = 'bold ' + hs + 'px "Stussy64", "Courier New", monospace';
     ctx.fillText(lines, PLAY_W / 2, PLAY_H / 2 - 10);
     if (subtitle) {
+      var ss = Math.min(15, Math.floor((PLAY_W - 40) / Math.max(1, subtitle.length)));
       ctx.fillStyle = '#b8b0ff';
-      ctx.font = 'bold 15px "Courier New", monospace';
+      ctx.font = 'bold ' + ss + 'px "Stussy64", "Courier New", monospace';
       ctx.fillText(subtitle, PLAY_W / 2, PLAY_H / 2 + 26);
     }
   }
@@ -1370,23 +1375,23 @@
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#fff3b0';
-    ctx.font = 'bold 46px "Courier New", monospace';
+    ctx.font = 'bold 46px "Stussy64", "Courier New", monospace';
     ctx.fillText('STUSSY PANIC', PLAY_W / 2, 92);
 
     ctx.fillStyle = '#8de08d';
-    ctx.font = 'bold 16px "Courier New", monospace';
+    ctx.font = 'bold 12px "Stussy64", "Courier New", monospace';
     ctx.fillText('Stussy the cat, nine mushrooms, and two people who want a word', PLAY_W / 2, 124);
 
     var t = performance.now() / 400;
     S.stamp(ctx, 190, 210, 92, false, function (c) { S.cat(c, Math.floor(t) % 2, false); });
     S.stamp(ctx, 400, 210, 92, false, function (c) { S.photographer(c, Math.floor(t) % 2, false); });
-    S.stamp(ctx, 610, 210, 92, false, function (c) { S.landlord(c, Math.floor(t) % 2, false); });
+    S.stamp(ctx, 640, 210, 92, false, function (c) { S.landlord(c, Math.floor(t) % 2, false); });
 
-    ctx.font = 'bold 13px "Courier New", monospace';
+    ctx.font = 'bold 10px "Stussy64", "Courier New", monospace';
     ctx.fillStyle = '#b8b0ff';
     ctx.fillText('STUSSY', 190, 268);
-    ctx.fillText('THE PHOTOGRAPHER', 400, 268);
-    ctx.fillText('MARYELLEN, YOUR LANDLORD', 610, 268);
+    ctx.fillText('RIVAL PHOTOGRAPHER', 400, 268);
+    ctx.fillText('MARYELLEN, THE LANDLORD', 640, 268);
 
     var lines = touch.enabled ? [
       'D-PAD, BOTTOM LEFT  ..... tap a way — she keeps going',
@@ -1405,14 +1410,14 @@
       'Complaining drains the meter; let go and it slowly refills.',
       'Run it dry and Stussy loses their voice until it recovers.'
     ];
-    ctx.font = 'bold 14px "Courier New", monospace';
+    ctx.font = 'bold 12px "Stussy64", "Courier New", monospace';
     for (var i = 0; i < lines.length; i++) {
       ctx.fillStyle = i < 2 ? '#ffe27a' : '#c9c2ff';
       ctx.fillText(lines[i], PLAY_W / 2, 320 + i * 24);
     }
 
     ctx.fillStyle = (Math.floor(performance.now() / 400) % 2) ? '#ffffff' : '#8de08d';
-    ctx.font = 'bold 20px "Courier New", monospace';
+    ctx.font = 'bold 20px "Stussy64", "Courier New", monospace';
     ctx.fillText(touch.enabled ? 'TAP TO START' : 'PRESS SPACE TO START', PLAY_W / 2, PLAY_H + 30);
   }
 

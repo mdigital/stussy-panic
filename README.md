@@ -5,8 +5,8 @@ the hero is Stussy, a mushroom-collecting cat, rather than a man with a
 borrowed mower.
 
 Nine mushrooms are scattered through a garden of hedges and trees. Collect all
-nine and the level is yours. Two people would rather you didn't: a photographer
-after his shot, and Maryellen, your landlord, who would like a word about the
+nine and the level is yours. Two people would rather you didn't: a rival photographer
+after his shot, and Maryellen, the landlord, who would like a word about the
 rent.
 
 **The catch:** the people can step over the hedges. Stussy cannot. They come at
@@ -35,6 +35,11 @@ black. Drop your artwork in at that path and it takes over on the next load.
 Open `index.html` in any modern browser. No build step, no server, no
 dependencies — it is plain HTML, CSS and JavaScript, and every sprite is drawn
 from rectangles at runtime, so there are no image or audio files to load.
+
+All the text is set in **Stussy64**, an original 8×8 pixel font in the C64
+idiom, drawn glyph by glyph for this game and compiled to a TTF (it lives at
+`assets/fonts/Stussy64.ttf`, public domain). It is monospaced with an advance
+equal to its size, which is also how the banners fit themselves to the screen.
 
 | Key | Does |
 | --- | --- |
@@ -66,11 +71,11 @@ Most levels are a freshly generated garden, but two are drawn by hand.
 
 | # | Level | Collect | Chasers |
 | --- | --- | --- | --- |
-| 1, 7+ | the garden | mushrooms | the photographer and Maryellen |
-| 2 | **Hawker St Mansion** | cheese and crackers | the photographer and **Charteris Bay Man** |
-| 3 | **Strait of Stussy** | sugared doughnuts | the photographer and Maryellen |
-| 4 | **The Beach** | life preserver rings | the photographer and **Willie** |
-| 5 | **The Supermarket** | salmon fillets | the photographer and Maryellen, on shift |
+| 1, 7+ | the garden | mushrooms | the rival photographer and Maryellen |
+| 2 | **Hawker St Mansion** | cheese and crackers | the rival photographer and **Charteris Bay Man** |
+| 3 | **Strait of Stussy** | sugared doughnuts | the rival photographer and Maryellen |
+| 4 | **The Beach** | life preserver rings | the rival photographer and **Willie** |
+| 5 | **The Supermarket** | salmon fillets | the rival photographer and Maryellen, on shift |
 | 6 | **Miramar** | mushrooms | **an alien** and **Peter Jackson** |
 
 **Hawker St Mansion** is a two-storey Wellington villa of the Mt Victoria sort:
@@ -196,6 +201,7 @@ src/sprites.js  all the art — characters and tiles drawn as rectangles
 src/audio.js    WebAudio bleeps, synthesised on the fly
 src/music.js    the soundtrack, sequenced live, plus the crack-screen wash
 src/screens.js  the crack intro and the loading picture, both drawn
+assets/fonts/   Stussy64, the game's own C64-style pixel font
 src/game.js     game loop, movement, chase AI, complaint meter, level themes,
                 touch controls, HUD, screens
 tests/          headless browser tests

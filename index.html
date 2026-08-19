@@ -7,6 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Stussy Panic</title>
 <style>
+  @font-face {
+    font-family: "Stussy64";
+    src: url("assets/fonts/Stussy64.ttf") format("truetype");
+    font-display: block;
+  }
   :root {
     --c64-border: #6c5eb5;
     --c64-screen: #40318d;
@@ -19,7 +24,7 @@
     height: 100%;
     background: var(--c64-border);
     color: var(--c64-text);
-    font-family: "Courier New", ui-monospace, monospace;
+    font-family: "Stussy64", "Courier New", ui-monospace, monospace;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 10px;
@@ -54,7 +59,8 @@
   @supports (height: 100dvh) {
     canvas { width: min(96vw, calc((100dvh - var(--chrome)) * 4 / 3)); }
   }
-  #hint { font-size: 12px; letter-spacing: 1px; opacity: .85; text-align: center; padding: 0 8px; }
+  #hint { font-size: 10px; letter-spacing: 1px; opacity: .85; text-align: center;
+          padding: 0 8px; text-transform: uppercase; }
 
   .touch-only { display: none; }
   /* On a touch device the controls are drawn on the screen, so say so — and
@@ -83,6 +89,11 @@
     <span class="touch-only">Tap the d-pad to steer Stussy &nbsp;·&nbsp; COMPLAIN to yowl</span>
   </div>
 
+  <script>
+    // kick the font load before the game draws its first frame; the render
+    // loop redraws constantly, so text snaps into the face the moment it lands
+    if (document.fonts && document.fonts.load) document.fonts.load('16px "Stussy64"');
+  </script>
   <script src="src/maze.js"></script>
   <script src="src/sprites.js"></script>
   <script src="src/audio.js"></script>
