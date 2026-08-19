@@ -201,8 +201,75 @@
 
   /* --------------------------------------------------------------- API */
 
+  var wash = null;
+
   var Music = {
     bpm: BPM,
+
+    // A held synth wash for the crack screen: detuned saws on an A minor
+    // ninth, a slow filter sweep and a touch of vibrato. No rhythm, just the
+    // sound of a machine warming up.
+    washStart: function () {
+      if (wash) return;
+      var c = Sfx.context();
+      // wait for the audio to be unlocked by a real gesture, or the envelope
+      // would run its course while the context is still suspended
+      if (!c || c.state !== 'running') return;
+      var out = Sfx.musicBus();
+      if (!out) return;
+      var t = c.currentTime;
+
+      var filter = c.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.Q.value = 7;
+      filter.frequency.setValueAtTime(260, t);
+      filter.frequency.linearRampToValueAtTime(2100, t + 6);
+      filter.frequency.linearRampToValueAtTime(700, t + 14);
+
+      var gain = c.createGain();
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.linearRampToValueAtTime(0.5, t + 1.6);
+
+      var lfo = c.createOscillator();
+      var lfoGain = c.createGain();
+      lfo.frequency.value = 0.18;
+      lfoGain.gain.value = 380;
+      lfo.connect(lfoGain);
+      lfoGain.connect(filter.frequency);
+      lfo.start(t);
+
+      var oscs = [];
+      [33, 45, 52, 57, 64, 71].forEach(function (note, i) {
+        [-7, 7].forEach(function (cents) {
+          var osc = c.createOscillator();
+          osc.type = i < 2 ? 'sawtooth' : 'square';
+          osc.frequency.value = hz(note);
+          osc.detune.value = cents + (i % 2 ? 4 : -4);
+          osc.connect(filter);
+          osc.start(t);
+          oscs.push(osc);
+        });
+      });
+
+      filter.connect(gain);
+      gain.connect(out);
+      wash = { ctx: c, gain: gain, oscs: oscs, lfo: lfo };
+    },
+
+    washStop: function () {
+      if (!wash) return;
+      var t = wash.ctx.currentTime;
+      try {
+        wash.gain.gain.cancelScheduledValues(t);
+        wash.gain.gain.setValueAtTime(wash.gain.gain.value || 0.0001, t);
+        wash.gain.gain.linearRampToValueAtTime(0.0001, t + 0.5);
+        wash.oscs.forEach(function (o) { o.stop(t + 0.6); });
+        wash.lfo.stop(t + 0.6);
+      } catch (e) { /* already stopped */ }
+      wash = null;
+    },
+
+    isWashing: function () { return !!wash; },
 
     start: function () {
       if (running) return;

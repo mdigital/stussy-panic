@@ -9,6 +9,7 @@
   'use strict';
 
   var M = global.Maze, S = global.Sprites, Sfx = global.Sfx;
+  var Music = global.Music, Screens = global.Screens;
   var FLOOR = M.FLOOR, HEDGE = M.HEDGE, TREE = M.TREE;
 
   var TILE = 32;
@@ -219,6 +220,7 @@
   // screens a tap anywhere should start the game instead.
   function controlsLive() {
     return touch.enabled && game &&
+           game.state !== STATE.CRACK && game.state !== STATE.LOADING &&
            game.state !== STATE.TITLE && game.state !== STATE.OVER;
   }
 
@@ -279,9 +281,12 @@
   /* ------------------------------------------------------------- game state */
 
   var STATE = {
+    CRACK: 'crack', LOADING: 'loading',
     TITLE: 'title', INTRO: 'intro', PLAY: 'play',
     CAUGHT: 'caught', CLEAR: 'clear', OVER: 'over'
   };
+
+  var LOADING_TIME = 10;     // seconds the loading picture stays up
 
   var game = null;
 
@@ -822,6 +827,28 @@
   /* ---------------------------------------------------------------- update */
 
   function update(dt) {
+    // The crack screen and the loading picture come first, once, at boot.
+    if (game.state === STATE.CRACK) {
+      Music.washStart();                     // once the audio has been unlocked
+      if (pressed.Space || pressed.Enter || pressed.NumpadEnter) {
+        game.state = STATE.LOADING;
+        // a wall-clock deadline, not a count of frames: ten seconds means ten
+        // seconds even if the machine is dropping them
+        game.loadingUntil = performance.now() + LOADING_TIME * 1000;
+      }
+      if (pressed.KeyM) Sfx.toggleMute();
+      return;
+    }
+    if (game.state === STATE.LOADING) {
+      Music.washStart();
+      if (performance.now() >= game.loadingUntil) {
+        Music.washStop();
+        game.state = STATE.TITLE;
+      }
+      if (pressed.KeyM) Sfx.toggleMute();
+      return;
+    }
+
     if (pressed.KeyM) Sfx.toggleMute();
     if (pressed.KeyR) {
       Sfx.complaintStop();
@@ -832,9 +859,11 @@
     }
 
     if (game.state === STATE.TITLE) {
+      if (Music.isWashing()) Music.washStop();
       if (pressed.Space || pressed.Enter || pressed.NumpadEnter) {
         game.state = STATE.INTRO;
         game.timer = 2.0;
+        Music.washStop();
         Music.start();
       }
       return;
@@ -1257,6 +1286,9 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    var now = performance.now() / 1000;
+    if (game.state === STATE.CRACK) { Screens.crack(ctx, now, PLAY_W, PLAY_H + HUD_H); return; }
+    if (game.state === STATE.LOADING) { Screens.loading(ctx, now, PLAY_W, PLAY_H + HUD_H); return; }
     if (game.state === STATE.TITLE) { drawTitle(); return; }
 
     if (game.shake > 0) {
@@ -1302,7 +1334,7 @@
   }
 
   newGame();
-  game.state = STATE.TITLE;
+  game.state = STATE.CRACK;
   global.requestAnimationFrame(frame);
 
   // exposed for debugging in the console

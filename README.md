@@ -18,6 +18,14 @@ not paleo!*, *the lift is broken again!*, *this camera is worth half that!* —
 and anyone within earshot turns and runs. It drains the complaint meter, and
 when the meter is empty Stussy has lost their voice until it recovers.
 
+## Booting it
+
+The game comes up the way a cracked tape would have. First a crack intro —
+rolling raster bars, a scroller, a held synth wash — which sits there until you
+press SPACE. Then the loading picture for ten seconds, and then the title
+screen. Both are boot-time only: restarting a game does not put you through them
+again.
+
 ## Playing it
 
 Open `index.html` in any modern browser. No build step, no server, no
@@ -148,7 +156,8 @@ index.html      page shell, C64-ish framing, loads the four scripts
 src/maze.js     level building: generated gardens, plus the two hand-drawn maps
 src/sprites.js  all the art — characters and tiles drawn as rectangles
 src/audio.js    WebAudio bleeps, synthesised on the fly
-src/music.js    the soundtrack, sequenced live
+src/music.js    the soundtrack, sequenced live, plus the crack-screen wash
+src/screens.js  the crack intro and the loading picture, both drawn
 src/game.js     game loop, movement, chase AI, complaint meter, level themes,
                 touch controls, HUD, screens
 tests/          headless browser tests
@@ -182,6 +191,7 @@ The tests drive the real game in headless Chromium.
 
 ```bash
 npm install playwright-core          # plus a Chromium build
+CHROMIUM=/path/to/chrome node tests/boot.test.js         # 13 boot checks
 CHROMIUM=/path/to/chrome node tests/rules.test.js        # 26 rule checks
 CHROMIUM=/path/to/chrome node tests/steer.test.js        # 5 steering checks
 CHROMIUM=/path/to/chrome node tests/sonos.test.js        # 9 bonus-item checks
@@ -190,6 +200,12 @@ CHROMIUM=/path/to/chrome node tests/mobile.test.js       # 11 touch checks
 CHROMIUM=/path/to/chrome node tests/music.test.js        # 6 soundtrack checks
 CHROMIUM=/path/to/chrome node tests/autoplay.test.js 90  # bot plays for 90s
 ```
+
+`boot.test.js` covers the boot sequence: that the crack screen comes up first
+and stays until SPACE (and only SPACE), that its bars really are rolling —
+compared frame to frame — that the loading picture is actually drawn rather than
+left black, that the wash plays under it and stops at the title, that the ten
+seconds is ten seconds of wall clock, and that restarting skips the lot.
 
 `rules.test.js` checks the things that make this game what it is: that Stussy
 never ends up on a hedge or a tree, that the humans do cross hedges and don't

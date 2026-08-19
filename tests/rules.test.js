@@ -15,6 +15,11 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   p.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
   await p.goto(PAGE);
   await p.waitForTimeout(300);
+
+  // Skip the crack screen and the loading picture: those are covered by
+  // boot.test.js, and sitting through ten seconds of them in every suite would
+  // be a waste of everybody's time.
+  await p.evaluate(() => { window.MushroomBother.state.state = 'title'; });
   await p.keyboard.press('Space');
   await p.waitForTimeout(2200);
 
