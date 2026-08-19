@@ -1,9 +1,9 @@
 /* game.js — Mushroom Bother.
  *
- * A cat is trying to collect nine mushrooms out of a hedge maze. A photographer
+ * Stussy the cat is collecting nine mushrooms out of a hedge maze. A photographer
  * wants the shot and Mary Ellen the landlord wants a word. Both of them stride
- * straight over the hedges; the cat has to go the long way round. The cat's only
- * defence is to complain, loudly, for as long as its complaint meter holds out.
+ * straight over the hedges; Stussy has to go the long way round. Stussy's only
+ * defence is to complain, loudly, for as long as the complaint meter holds out.
  */
 (function (global) {
   'use strict';
@@ -66,6 +66,108 @@
     }
     return false;
   }
+
+  /* ------------------------------------------------------- touch controls */
+
+  // An on-screen d-pad bottom left and a complain button bottom right, drawn
+  // over the garden. They only appear on touch devices, so a desktop player
+  // never sees them.
+  var DPAD = { cx: 116, cy: PLAY_H - 118, r: 92, dead: 20 };
+  var YELL = { cx: PLAY_W - 116, cy: PLAY_H - 118, r: 66 };
+
+  var touch = {
+    enabled: false,
+    dir: null,          // {x, y} while a direction is being pressed
+    complain: false,
+    padPointer: null,
+    yellPointer: null
+  };
+
+  function coarsePointer() {
+    return (global.matchMedia && global.matchMedia('(pointer: coarse)').matches) ||
+           ('ontouchstart' in global) || (global.navigator && global.navigator.maxTouchPoints > 0);
+  }
+  touch.enabled = coarsePointer();
+
+  function canvasPoint(ev) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      x: (ev.clientX - rect.left) * (canvas.width / rect.width),
+      y: (ev.clientY - rect.top) * (canvas.height / rect.height)
+    };
+  }
+
+  function within(p, c) {
+    var dx = p.x - c.cx, dy = p.y - c.cy;
+    return dx * dx + dy * dy <= c.r * c.r;
+  }
+
+  // Which way the thumb is pushing: whichever axis is furthest from centre.
+  function padDirection(p) {
+    var dx = p.x - DPAD.cx, dy = p.y - DPAD.cy;
+    if (dx * dx + dy * dy < DPAD.dead * DPAD.dead) return null;
+    if (Math.abs(dx) > Math.abs(dy)) return { x: dx > 0 ? 1 : -1, y: 0 };
+    return { x: 0, y: dy > 0 ? 1 : -1 };
+  }
+
+  // The controls are live during a round only — on the title and game over
+  // screens a tap anywhere should start the game instead.
+  function controlsLive() {
+    return touch.enabled && game &&
+           game.state !== STATE.TITLE && game.state !== STATE.OVER;
+  }
+
+  function onPointerDown(ev) {
+    Sfx.unlock();
+    if (ev.pointerType === 'touch' || ev.pointerType === 'pen') touch.enabled = true;
+    var p = canvasPoint(ev);
+
+    if (controlsLive()) {
+      if (within(p, YELL)) {
+        touch.yellPointer = ev.pointerId;
+        touch.complain = true;
+        ev.preventDefault();
+        return;
+      }
+      // a generous catch area around the pad, so a stray thumb still steers
+      if (within(p, { cx: DPAD.cx, cy: DPAD.cy, r: DPAD.r * 1.2 })) {
+        touch.padPointer = ev.pointerId;
+        touch.dir = padDirection(p);
+        ev.preventDefault();
+        return;
+      }
+    }
+
+    // A tap anywhere else works like SPACE, for the title and game over screens.
+    pressed.Space = true;
+    ev.preventDefault();
+  }
+
+  function onPointerMove(ev) {
+    if (ev.pointerId !== touch.padPointer) return;
+    touch.dir = padDirection(canvasPoint(ev));
+    ev.preventDefault();
+  }
+
+  function onPointerUp(ev) {
+    if (ev.pointerId === touch.padPointer) { touch.padPointer = null; touch.dir = null; }
+    if (ev.pointerId === touch.yellPointer) { touch.yellPointer = null; touch.complain = false; }
+  }
+
+  function releaseTouch() {
+    touch.padPointer = null; touch.yellPointer = null;
+    touch.dir = null; touch.complain = false;
+  }
+
+  canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('pointercancel', onPointerUp);
+  canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  global.addEventListener('blur', releaseTouch);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { releaseTouch(); Sfx.complaintStop(); }
+  });
 
   /* ------------------------------------------------------------- game state */
 
@@ -179,7 +281,7 @@
     if (held('down')) return { x: 0, y: 1 };
     if (held('left')) return { x: -1, y: 0 };
     if (held('right')) return { x: 1, y: 0 };
-    return null;
+    return touch.dir;
   }
 
   function updateCat(dt) {
@@ -201,9 +303,8 @@
       }
     }
 
-    // Only walk while a key is down — this is a cat, it stops when you stop asking.
-    var moving = !!want || (cat.want && false);
-    if (!held('up') && !held('down') && !held('left') && !held('right')) {
+    // Stussy only walks while you are asking — key down, or thumb on the pad.
+    if (!want) {
       cat.moving = false;
       return;
     }
@@ -321,7 +422,7 @@
   /* ------------------------------------------------------------- complaint */
 
   function updateComplaint(dt) {
-    var wantsToComplain = !!keys.Space && game.state === STATE.PLAY;
+    var wantsToComplain = (!!keys.Space || touch.complain) && game.state === STATE.PLAY;
     var canComplain = game.complaint > 0 && !game.exhausted;
 
     if (wantsToComplain && canComplain) {
@@ -398,7 +499,7 @@
     while (game.score >= game.nextExtraLife) {
       game.lives++;
       game.nextExtraLife += EXTRA_LIFE_EVERY;
-      addFloater(game.cat.x, game.cat.y - 34, 'EXTRA CAT!', '#7ad4ff');
+      addFloater(game.cat.x, game.cat.y - 34, 'EXTRA STUSSY!', '#7ad4ff');
     }
   }
 
@@ -643,9 +744,9 @@
     ctx.fillText('BEST ' + String(game.best).padStart(6, '0'), 150, top + 22);
 
     // lives, as little cat heads
-    ctx.fillText('CATS', 150, top + 42);
+    ctx.fillText('STUSSY', 150, top + 42);
     for (var i = 0; i < Math.min(game.lives, 6); i++) {
-      S.stamp(ctx, 212 + i * 20, top + 37, 20, false, function (c) {
+      S.stamp(ctx, 236 + i * 20, top + 37, 20, false, function (c) {
         S.cat(c, 0, false);
       });
     }
@@ -682,6 +783,65 @@
     ctx.fillText(Sfx.isMuted() ? 'M: SOUND OFF' : 'M: SOUND ON', PLAY_W - 10, top + 48);
   }
 
+  function drawTouchControls() {
+    if (!controlsLive()) return;
+    var active = touch.dir;
+
+    // d-pad, bottom left
+    ctx.save();
+    ctx.globalAlpha = 0.42;
+    ctx.fillStyle = '#171340';
+    ctx.beginPath(); ctx.arc(DPAD.cx, DPAD.cy, DPAD.r, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.8;
+    ctx.strokeStyle = '#8d84e0'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(DPAD.cx, DPAD.cy, DPAD.r, 0, Math.PI * 2); ctx.stroke();
+
+    var dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    for (var i = 0; i < dirs.length; i++) {
+      var dx = dirs[i][0], dy = dirs[i][1];
+      var on = active && active.x === dx && active.y === dy;
+      var ax = DPAD.cx + dx * DPAD.r * 0.55, ay = DPAD.cy + dy * DPAD.r * 0.55;
+      var sz = 19;
+      ctx.globalAlpha = on ? 0.95 : 0.62;
+      ctx.fillStyle = on ? '#ffe27a' : '#c9c2ff';
+      ctx.beginPath();
+      ctx.moveTo(ax + dx * sz, ay + dy * sz);
+      ctx.lineTo(ax - dx * sz * 0.6 + dy * sz * 0.9, ay - dy * sz * 0.6 + dx * sz * 0.9);
+      ctx.lineTo(ax - dx * sz * 0.6 - dy * sz * 0.9, ay - dy * sz * 0.6 - dx * sz * 0.9);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = '#8d84e0';
+    ctx.beginPath(); ctx.arc(DPAD.cx, DPAD.cy, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // complain button, bottom right, ringed by the complaint meter
+    ctx.save();
+    var pct = game.complaint / COMPLAINT_MAX;
+    var down = touch.complain && !game.exhausted && game.complaint > 0;
+    ctx.globalAlpha = down ? 0.72 : 0.5;
+    ctx.fillStyle = game.exhausted ? '#3d1a22' : (down ? '#574718' : '#171340');
+    ctx.beginPath(); ctx.arc(YELL.cx, YELL.cy, YELL.r, 0, Math.PI * 2); ctx.fill();
+
+    ctx.globalAlpha = 0.9;
+    ctx.lineWidth = 7;
+    ctx.strokeStyle = 'rgba(20,16,52,0.85)';
+    ctx.beginPath(); ctx.arc(YELL.cx, YELL.cy, YELL.r - 6, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = game.exhausted ? '#c0392b' : (pct > 0.4 ? '#57d356' : '#e2c141');
+    ctx.beginPath();
+    ctx.arc(YELL.cx, YELL.cy, YELL.r - 6, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0, pct));
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = game.exhausted ? '#ff9c85' : (down ? '#fff3b0' : '#e6e1ff');
+    ctx.font = 'bold 19px "Courier New", monospace';
+    ctx.fillText(game.exhausted ? 'NO' : 'YOWL', YELL.cx, YELL.cy - 1);
+    ctx.font = 'bold 11px "Courier New", monospace';
+    ctx.fillText(game.exhausted ? 'VOICE' : 'COMPLAIN', YELL.cx, YELL.cy + 17);
+    ctx.restore();
+  }
+
   function banner(lines, subtitle) {
     ctx.fillStyle = 'rgba(20,16,40,0.78)';
     ctx.fillRect(0, PLAY_H / 2 - 70, PLAY_W, 140);
@@ -710,7 +870,7 @@
 
     ctx.fillStyle = '#8de08d';
     ctx.font = 'bold 16px "Courier New", monospace';
-    ctx.fillText('nine mushrooms, one hedge maze, two people who want a word', PLAY_W / 2, 124);
+    ctx.fillText('Stussy the cat, nine mushrooms, and two people who want a word', PLAY_W / 2, 124);
 
     var t = performance.now() / 400;
     S.stamp(ctx, 190, 210, 92, false, function (c) { S.cat(c, Math.floor(t) % 2, false); });
@@ -719,18 +879,26 @@
 
     ctx.font = 'bold 13px "Courier New", monospace';
     ctx.fillStyle = '#b8b0ff';
-    ctx.fillText('THE CAT', 190, 268);
+    ctx.fillText('STUSSY', 190, 268);
     ctx.fillText('THE PHOTOGRAPHER', 400, 268);
     ctx.fillText('MARY ELLEN, YOUR LANDLORD', 610, 268);
 
-    var lines = [
-      'ARROWS or WASD  ..... walk the cat around the maze',
-      'HOLD SPACE  ......... complain loudly and send them running',
+    var lines = touch.enabled ? [
+      'D-PAD, BOTTOM LEFT  ..... walk Stussy around the maze',
+      'HOLD COMPLAIN, RIGHT .... yowl and send them running',
       '',
-      'The cat cannot cross hedges or trees.',
+      'Stussy cannot cross hedges or trees.',
       'They step over the hedges, so they take the short way.',
       'Complaining drains the meter; let go and it slowly refills.',
-      'Run it dry and you lose your voice until it recovers.'
+      'Run it dry and Stussy loses their voice until it recovers.'
+    ] : [
+      'ARROWS or WASD  ..... walk Stussy around the maze',
+      'HOLD SPACE  ......... complain loudly and send them running',
+      '',
+      'Stussy cannot cross hedges or trees.',
+      'They step over the hedges, so they take the short way.',
+      'Complaining drains the meter; let go and it slowly refills.',
+      'Run it dry and Stussy loses their voice until it recovers.'
     ];
     ctx.font = 'bold 14px "Courier New", monospace';
     for (var i = 0; i < lines.length; i++) {
@@ -740,7 +908,7 @@
 
     ctx.fillStyle = (Math.floor(performance.now() / 400) % 2) ? '#ffffff' : '#8de08d';
     ctx.font = 'bold 20px "Courier New", monospace';
-    ctx.fillText('PRESS SPACE TO START', PLAY_W / 2, PLAY_H + 30);
+    ctx.fillText(touch.enabled ? 'TAP TO START' : 'PRESS SPACE TO START', PLAY_W / 2, PLAY_H + 30);
   }
 
   function draw() {
@@ -763,15 +931,16 @@
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     drawHud();
+    drawTouchControls();
 
     if (game.state === STATE.INTRO) {
       banner('LEVEL ' + game.level, 'nine mushrooms — mind the hedges');
     } else if (game.state === STATE.CAUGHT) {
-      banner(game.caughtBy, game.lives >= 0 ? (game.lives + ' cat' + (game.lives === 1 ? '' : 's') + ' left') : '');
+      banner(game.caughtBy, game.lives >= 0 ? (game.lives === 1 ? '1 Stussy left' : game.lives + ' Stussys left') : '');
     } else if (game.state === STATE.CLEAR) {
       banner('GARDEN CLEARED!', 'bonus ' + (500 + game.level * 100) + ' — on to level ' + (game.level + 1));
     } else if (game.state === STATE.OVER) {
-      banner('GAME OVER', 'score ' + game.score + '  ·  press SPACE to play again');
+      banner('GAME OVER', 'score ' + game.score + (touch.enabled ? '  ·  tap to play again' : '  ·  press SPACE to play again'));
     } else if (game.paused) {
       banner('PAUSED', 'press P to carry on');
     }

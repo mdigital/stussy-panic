@@ -2,17 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Mushroom Bother</title>
 <style>
   :root {
     --c64-border: #6c5eb5;
     --c64-screen: #40318d;
     --c64-text:   #b8b0ff;
+    --chrome:     116px;   /* room taken by the heading and the hint line */
   }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0; padding: 0; height: 100%;
+    margin: 0; padding: 0;
+    height: 100%;
     background: var(--c64-border);
     color: var(--c64-text);
     font-family: "Courier New", ui-monospace, monospace;
@@ -20,6 +24,11 @@
     align-items: center; justify-content: center;
     gap: 10px;
     overflow: hidden;
+    /* no pinch-zoom, no double-tap zoom, no text selection while playing */
+    touch-action: manipulation;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
   h1 {
     margin: 0; font-size: 18px; letter-spacing: 4px;
@@ -30,23 +39,49 @@
     background: var(--c64-border);
     border-radius: 6px;
     box-shadow: 0 0 0 3px #2a2260, 0 14px 40px rgba(0,0,0,.45);
+    max-width: 100%;
   }
   canvas {
     display: block;
     background: var(--c64-screen);
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    max-width: 96vw;
-    max-height: 78vh;
-    width: 800px; height: 600px;
+    touch-action: none;            /* the game handles every touch itself */
+    aspect-ratio: 4 / 3;
+    width: min(96vw, calc((100vh - var(--chrome)) * 4 / 3));
+    height: auto;
   }
-  #hint { font-size: 12px; letter-spacing: 1px; opacity: .85; }
+  @supports (height: 100dvh) {
+    canvas { width: min(96vw, calc((100dvh - var(--chrome)) * 4 / 3)); }
+  }
+  #hint { font-size: 12px; letter-spacing: 1px; opacity: .85; text-align: center; padding: 0 8px; }
+
+  .touch-only { display: none; }
+  /* On a touch device the controls are drawn on the screen, so say so — and
+     give the canvas back the space the chrome was using. */
+  @media (pointer: coarse) {
+    :root { --chrome: 84px; }
+    .kbd-only { display: none; }
+    .touch-only { display: inline; }
+    h1 { font-size: 15px; letter-spacing: 3px; }
+    #frame { padding: 8px; border-radius: 4px; }
+  }
+  /* Phones held sideways: drop the chrome entirely and fill the screen. */
+  @media (max-height: 460px) {
+    :root { --chrome: 26px; }
+    body { gap: 4px; }
+    h1, #hint { display: none; }
+    #frame { padding: 4px; }
+  }
 </style>
 </head>
 <body>
   <h1>Mushroom Bother</h1>
   <div id="frame"><canvas id="screen" width="800" height="600"></canvas></div>
-  <div id="hint">Arrows / WASD move &nbsp;·&nbsp; SPACE = complain &nbsp;·&nbsp; P = pause &nbsp;·&nbsp; R = restart</div>
+  <div id="hint">
+    <span class="kbd-only">Arrows / WASD move &nbsp;·&nbsp; SPACE = complain &nbsp;·&nbsp; P = pause &nbsp;·&nbsp; R = restart</span>
+    <span class="touch-only">D-pad to walk Stussy &nbsp;·&nbsp; COMPLAIN to yowl</span>
+  </div>
 
   <script src="src/maze.js"></script>
   <script src="src/sprites.js"></script>
