@@ -109,6 +109,9 @@
     gunwale:   '#f2efe4',
     thwart:    '#c8a267',
     oar:       '#a87f45',
+    anchor:    '#4a4d57',
+    anchorLit: '#767a86',
+    rope:      '#c9b07a',
 
     // the Majestic Centre
     glass:     '#5f8fc4',
@@ -561,43 +564,83 @@
 
   // A clinker rowboat, three tiles of it, parked in the lounge as though that
   // were a normal thing to do with a boat.
+  // A clinker dinghy seen side on, four tiles of her: raked stem at the bow, a
+  // transom aft, thwarts you can see down into, an anchor over the side and her
+  // name on the hull. She is called Chartreuse.
   function drawRowboat(ctx, px, py, size) {
-    var u = size / UNIT;          // three tiles wide, one tall
-    var W = 48;
+    var u = size / UNIT;
     function q(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(px + x * u, py + y * u, w * u, h * u); }
 
-    // How far the hull is inset on each row: widest amidships, pointed at the
-    // bow and stern.
-    var inset = [null, null, 13, 9, 6, 4, 3, 2, 2, 3, 4, 6, 9, 13];
+    // The silhouette, row by row: the bow rakes forward hard, the transom aft
+    // barely at all, which is what makes a boat read as a boat side on.
+    var HULL = [
+      [2, 5, 11],    // stem head, standing proud of the rail
+      [3, 7, 61],
+      [4, 8, 61],
+      [5, 9, 60],
+      [6, 11, 60],
+      [7, 12, 59],
+      [8, 13, 59],
+      [9, 15, 57],
+      [10, 16, 57],
+      [11, 19, 56],
+      [12, 21, 55],
+      [13, 24, 53],
+      [14, 28, 51]
+    ];
 
-    q(6, 14, W - 12, 1, C.shadow);
+    q(27, 15, 27, 1, C.shadow);
 
-    for (var y = 2; y < inset.length; y++) {
-      var i = inset[y];
-      var body = (y >= 10) ? C.hullDark : C.hull;
-      q(i, y, W - i * 2, 1, body);
-      q(i, y, 1, 1, C.hullDark);              // dark edge down each side
-      q(W - i - 1, y, 1, 1, C.hullDark);
+    for (var i = 0; i < HULL.length; i++) {
+      var y = HULL[i][0], x0 = HULL[i][1], x1 = HULL[i][2];
+      q(x0, y, x1 - x0, 1, C.hull);
+      q(x0, y, 1, 1, C.hullDark);
+      q(x1 - 1, y, 1, 1, C.hullDark);
     }
-    // the pale gunwale running right around the top
-    q(13, 2, W - 26, 1, C.gunwale);
-    q(9, 3, 4, 1, C.gunwale);  q(W - 13, 3, 4, 1, C.gunwale);
-    q(6, 4, 3, 1, C.gunwale);  q(W - 9, 4, 3, 1, C.gunwale);
-    q(4, 5, 2, 1, C.gunwale);  q(W - 6, 5, 2, 1, C.gunwale);
-    q(3, 6, 1, 2, C.gunwale);  q(W - 4, 6, 1, 2, C.gunwale);
+    // clinker laps following the flare of the hull, and the keel
+    q(15, 8, 42, 1, C.hullDark);
+    q(20, 11, 35, 1, C.hullDark);
+    q(28, 14, 23, 1, C.hullDark);
 
-    // planking along the inside, and two thwarts to sit on
-    q(8, 6, W - 16, 1, C.hullLit);
-    q(16, 4, 3, 8, C.thwart);
-    q(29, 4, 3, 8, C.thwart);
-    q(16, 4, 3, 1, C.gunwale);
-    q(29, 4, 3, 1, C.gunwale);
+    // down into her: the inside of the far side, then the rail along the top
+    q(8, 4, 52, 2, C.hullDark);
+    q(7, 3, 54, 1, C.gunwale);
+    q(5, 2, 5, 1, C.gunwale);              // stem head
+    q(59, 3, 3, 3, C.gunwale);             // transom top
 
-    // a pair of oars stowed fore and aft, blades hanging past the ends
-    q(6, 5, 30, 1, C.oar);
-    q(2, 4, 5, 3, C.oar);                     // blade over the bow
-    q(12, 10, 30, 1, C.oar);
-    q(41, 9, 5, 3, C.oar);                    // blade over the stern
+    // thwarts
+    q(21, 4, 5, 2, C.thwart);
+    q(39, 4, 5, 2, C.thwart);
+    q(21, 4, 5, 1, C.gunwale);
+    q(39, 4, 5, 1, C.gunwale);
+
+    // her name, painted on the side
+    ctx.save();
+    ctx.font = 'bold ' + Math.max(8, Math.round(size * 0.28)) + 'px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = C.hullDark;
+    ctx.fillText('Chartreuse', px + 26 * u, py + 10.6 * u);
+    ctx.fillStyle = C.gunwale;
+    ctx.fillText('Chartreuse', px + 26 * u, py + 10.2 * u);
+    ctx.restore();
+
+    // an anchor slung over the side, aft
+    var ax = 47, ay = 3;
+    q(ax + 4, ay, 1, 2, C.rope);           // painter over the rail
+    q(ax + 3, ay + 2, 3, 1, C.anchor);     // ring
+    q(ax + 4, ay + 2, 1, 1, C.anchorLit);
+    q(ax + 4, ay + 3, 1, 6, C.anchor);     // shank
+    q(ax + 1, ay + 4, 7, 1, C.anchor);     // stock
+    q(ax + 1, ay + 4, 1, 1, C.anchorLit);
+    q(ax + 7, ay + 4, 1, 1, C.anchorLit);
+    q(ax + 2, ay + 8, 5, 1, C.anchor);     // crown
+    q(ax + 1, ay + 7, 1, 1, C.anchor);     // flukes
+    q(ax, ay + 6, 1, 1, C.anchor);
+    q(ax + 7, ay + 7, 1, 1, C.anchor);
+    q(ax + 8, ay + 6, 1, 1, C.anchor);
+    q(ax, ay + 5, 1, 1, C.anchorLit);
+    q(ax + 8, ay + 5, 1, 1, C.anchorLit);
   }
 
   // The Majestic Centre standing over the block: a banded blue-glass drum, the

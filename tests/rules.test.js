@@ -45,7 +45,21 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(t.enemyOnHedge > 0, 'the humans do walk over hedges (' + t.enemyOnHedge + ' samples)');
   ok(t.enemyOnTree === 0, 'nobody walks through a tree');
 
+  // These next sections stand Stussy still for seconds at a time. Left to
+  // themselves the chasers catch her, and the game drops into its caught state
+  // where complaining, taunting and capture are all inert — so wait for play and
+  // keep her safe while the mechanic under test is exercised.
+  const settle = (graceSeconds) => p.evaluate(async (grace) => {
+    const g = window.MushroomBother.state;
+    for (let i = 0; i < 300 && g.state !== 'play'; i++) {
+      await new Promise(r => setTimeout(r, 30));
+    }
+    g.cat.rolling = false;
+    if (grace) g.grace = grace;
+  }, graceSeconds);
+
   // ---- 3: complaint meter lifecycle ----------------------------------------
+  await settle(60);
   await p.evaluate(() => { window.MushroomBother.state.complaint = 100; window.MushroomBother.state.exhausted = false; });
   await p.keyboard.down('Space');
   await p.waitForTimeout(600);
@@ -63,6 +77,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(back.c > 20 && !back.ex, 'meter recharges and the voice comes back (' + Math.round(back.c) + ')');
 
   // ---- 4: complaining scares whoever is in earshot --------------------------
+  await settle(60);
   const scared = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
     g.cat.rolling = false;                 // park her: this is a scare test, not a walk test
@@ -82,6 +97,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(scared.maryFlee <= 0, 'someone out of earshot carries on regardless');
 
   // ---- 4b: the two of them call out when they close in ---------------------
+  await settle(60);
   const taunts = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
     g.cat.rolling = false;              // park her so they stay in earshot
@@ -113,6 +129,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(hushed <= 0, 'whoever is running away stops talking');
 
   // ---- 5: capture, life loss, respawn --------------------------------------
+  await settle(0);
   const cap = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
     g.cat.rolling = false;              // stand still and be caught
@@ -132,6 +149,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(cap.after === 'play' && cap.home, 'the cat respawns at its starting corner');
 
   // ---- 6: game over and restart --------------------------------------------
+  await settle(0);
   const over = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
     g.cat.rolling = false;

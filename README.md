@@ -63,8 +63,9 @@ four bedrooms off an upstairs hallway, a staircase down the middle of the house,
 and a lounge and kitchen either side of the downstairs hall. The beds and sofas
 are what the people step over. The rival here is Charteris Bay Man — an aging
 rocker in glasses, denim jacket, black jeans and Chuck Taylors, whose entire
-contribution is "FUCK OFF STUSSY". There is a clinker rowboat parked in the
-downstairs lounge, as you would expect.
+contribution is "FUCK OFF STUSSY". A clinker dinghy called *Chartreuse* is
+parked in the downstairs lounge, side on, anchor over the side, as you would
+expect.
 
 **Strait of Stussy** is the Victoria Street block: long straight streets, a
 grid of lanes and the angled corner where Victoria meets Bond. Planter boxes and
