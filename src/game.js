@@ -28,8 +28,9 @@
   var RECHARGE_DELAY = 0.85;     // quiet seconds before it starts refilling
   var RECOVER_THRESHOLD = 22;    // after running dry, needs this much to be usable again
 
-  var SONOS_CHANCE = 0.5;    // how often the speaker turns up on a level
-  var SONOS_SCORE = 250;
+  var BONUS_CHANCE = 0.5;    // how often the bonus item turns up on a level
+  var BONUS_SCORE = 250;
+  var NEVER_CATCH = 1.4 * TILE;   // how close a hopeless pursuit ever gets
 
   var STARTING_LIVES = 3;
   var EXTRA_LIFE_EVERY = 5000;
@@ -50,6 +51,7 @@
       floor: S.grass, low: S.hedge, solid: S.tree,
       solidOverhead: true,          // tree canopies overhang, so draw them last
       pickup: S.mushroom,
+      bonus: { draw: S.sonos, chases: 'cat' },
       rival: {
         draw: S.landlord,
         lines: ["WHERE'S YOUR RENT!?"],
@@ -63,12 +65,29 @@
       floor: S.floor, low: S.furniture, solid: S.wall,
       solidOverhead: false,
       pickup: S.cheese,
+      bonus: { draw: S.sonos, chases: 'cat' },
       decor: { stairs: S.stairs, rowboat: S.rowboat },
       rival: {
         draw: S.rocker,
         lines: ['FUCK OFF STUSSY'],
         caught: 'SEEN OFF BY CHARTERIS BAY MAN!'
       }
+    },
+    beach: {
+      name: 'THE BEACH',
+      subtitle: 'nine paua shells — mind the driftwood',
+      cleared: 'BEACH CLEARED!',
+      floor: S.sand, low: S.driftwood, solid: S.rock,
+      solidOverhead: false,
+      pickup: S.paua,
+      decor: { sea: S.sea },
+      rival: {
+        draw: S.willie,
+        lines: ['LOVELY DAY FOR IT!'],
+        caught: 'HELLO DARLING'
+      },
+      // Down here the law has other priorities than a cat with a jar.
+      bonus: { draw: S.tumjal, chases: 'rival' }
     },
     strait: {
       name: 'STRAIT OF STUSSY',
@@ -77,6 +96,7 @@
       floor: S.street, low: S.planter, solid: S.building,
       solidOverhead: false,
       pickup: S.doughnut,
+      bonus: { draw: S.sonos, chases: 'cat' },
       decor: { majestic: S.majestic },
       rival: {
         draw: S.landlord,
@@ -105,6 +125,7 @@
   };
 
   TAUNTS.police = ["THAT'S NOT YOURS!"];
+  TAUNTS.policeRival = ['PUT THAT AWAY!'];
 
   var TAUNT_RADIUS = 7 * TILE;   // how close they get before they start on you
   var TAUNT_SHOW = 2.2;          // seconds a line stays up
@@ -326,7 +347,7 @@
     game.enemies = [game.photographer, game.landlord];
     game.police = null;
 
-    placeSonos(data);
+    placeBonus(data);
 
     game.complaint = COMPLAINT_MAX;
     game.exhausted = false;
@@ -337,11 +358,12 @@
     game.timer = 2.0;
   }
 
-  // The speaker turns up on about half the levels, dropped somewhere Stussy can
-  // reach but nowhere near where she starts.
-  function placeSonos(data) {
-    game.sonos = null;
-    if (Math.random() >= SONOS_CHANCE) return;
+  // The bonus item turns up on about half the levels, dropped somewhere Stussy
+  // can reach but nowhere near where she starts. What it is depends on where
+  // you are: a speaker in town, a jar of Tumjal relish at the beach.
+  function placeBonus(data) {
+    game.bonus = null;
+    if (Math.random() >= BONUS_CHANCE) return;
 
     var taken = {};
     game.mushrooms.forEach(function (m) { taken[m.x + ',' + m.y] = true; });
@@ -355,11 +377,13 @@
     }
     if (!options.length) return;
     var spot = options[(Math.random() * options.length) | 0];
-    game.sonos = { x: spot.x, y: spot.y, taken: false };
+    game.bonus = { x: spot.x, y: spot.y, taken: false };
   }
 
-  // Nicking it brings a policeman out, who chases like everybody else.
+  // Taking it brings a policeman out. Usually he wants a word with Stussy;
+  // at the beach he has taken one look at Willie and lost interest in her.
   function callPolice() {
+    var afterRival = game.theme.bonus.chases === 'rival';
     var corner = { x: COLS - 2, y: ROWS - 2 };
     var best = null, bestDist = -1;
     for (var y = 1; y < ROWS - 1; y++) {
@@ -371,10 +395,32 @@
     }
     var spawn = best || corner;
     var police = makeEntity(spawn, Math.min(146, 108 + (game.level - 1) * 6), true);
-    police.lines = TAUNTS.police;
     police.draw = S.police;
     police.caughtText = 'COLLARED BY THE POLICEMAN!';
     police.tauntCooldown = 0.6;
+
+    if (afterRival) {
+      // He follows Willie about telling him to put it away, and never quite
+      // gets there: he is slower, and he backs off if he ever closes right up.
+      police.chasing = game.landlord;
+      police.tauntTarget = game.landlord;
+      police.harmless = true;
+      police.lines = TAUNTS.policeRival;
+      police.speed = Math.min(police.speed, game.landlord.speed - 10);
+      // start him a few paces behind Willie, snapped to a tile he can stand on
+      police.tx = Math.floor(game.landlord.x / TILE) - 3;
+      police.ty = Math.floor(game.landlord.y / TILE);
+      if (tileAt(police.tx, police.ty) !== FLOOR) {
+        police.tx = spawn.x; police.ty = spawn.y;
+      }
+      police.x = police.tx * TILE + TILE / 2;
+      police.y = police.ty * TILE + TILE / 2;
+      police.home = { x: police.tx, y: police.ty };
+    } else {
+      police.chasing = game.cat;
+      police.lines = TAUNTS.police;
+    }
+
     game.police = police;
     game.enemies.push(police);
   }
@@ -504,23 +550,28 @@
   }
 
   function chooseNextTile(e, chaseField, fleeField) {
+    // fleeing from a yell, or backing off from a pursuit that is never meant
+    // to end — either way, walk away from the field rather than down it
+    var away = e.flee > 0 || e.retreat;
     var options = [];
     var dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
     for (var i = 0; i < 4; i++) {
       var nx = e.tx + dirs[i][0], ny = e.ty + dirs[i][1];
       if (!canWalk(e, nx, ny)) continue;
-      var f = (e.flee > 0 ? fleeField : chaseField)[nx + ny * COLS];
-      if (f < 0) f = e.flee > 0 ? -1 : 9999;      // unreachable
+      // a hopeless pursuer will not even step onto the man he is pursuing
+      if (e.avoidTile && nx === e.avoidTile.x && ny === e.avoidTile.y) continue;
+      var f = (away ? fleeField : chaseField)[nx + ny * COLS];
+      if (f < 0) f = away ? -1 : 9999;            // unreachable
       options.push({ x: nx, y: ny, score: f, back: (nx === e.prev.x && ny === e.prev.y) });
     }
     if (!options.length) return;
 
     var forward = options.filter(function (o) { return !o.back; });
-    var pool = (e.flee > 0 || !forward.length) ? options : forward;
+    var pool = (away || !forward.length) ? options : forward;
 
     var best = pool[0];
     for (var k = 1; k < pool.length; k++) {
-      var better = e.flee > 0 ? pool[k].score > best.score : pool[k].score < best.score;
+      var better = away ? pool[k].score > best.score : pool[k].score < best.score;
       // A coin flip on ties keeps the two of them from walking in lockstep.
       if (better || (pool[k].score === best.score && Math.random() < 0.5)) best = pool[k];
     }
@@ -532,7 +583,8 @@
 
   function updateEnemy(e, dt, chaseField, fleeField) {
     if (e.flee > 0) e.flee -= dt;
-    var speed = e.speed * (e.flee > 0 ? 1.12 : 1);
+    // backing off has to outpace the man you are backing off from
+    var speed = e.speed * (e.flee > 0 ? 1.12 : (e.retreat ? 1.3 : 1));
     var remaining = speed * dt;
     var guard = 0;
 
@@ -571,8 +623,24 @@
     var ambushField = humanField(ax, ay);
     updateEnemy(game.landlord, dt, ambushField, fleeField);
 
-    // the policeman comes straight at you, same as the photographer
-    if (game.police) updateEnemy(game.police, dt, fleeField, fleeField);
+    // the policeman goes after whoever he is interested in
+    if (game.police) {
+      var law = game.police;
+      var mark = law.chasing || game.cat;
+      var field = (mark === game.cat)
+        ? fleeField
+        : humanField(Math.floor(mark.x / TILE), Math.floor(mark.y / TILE));
+      // A pursuit that is never meant to end: once he closes to within a
+      // couple of tiles he backs off again, so he follows Willie around the
+      // beach for ever without once laying a hand on him.
+      var gap = Math.hypot(law.x - mark.x, law.y - mark.y);
+      law.retreat = !!(law.harmless && gap < NEVER_CATCH);
+      law.avoidTile = law.harmless
+        ? { x: Math.floor(mark.x / TILE), y: Math.floor(mark.y / TILE) }
+        : null;
+      var awayField = law.flee > 0 ? fleeField : field;
+      updateEnemy(law, dt, field, awayField);
+    }
   }
 
   // The chasers call out whenever they get near Stussy — and again at the
@@ -583,7 +651,8 @@
       if (e.tauntCooldown > 0) e.tauntCooldown -= dt;
       if (e.flee > 0) { e.tauntTimer = 0; return; }
 
-      var dx = e.x - game.cat.x, dy = e.y - game.cat.y;
+      var mark = e.tauntTarget || game.cat;
+      var dx = e.x - mark.x, dy = e.y - mark.y;
       if (dx * dx + dy * dy < TAUNT_RADIUS * TAUNT_RADIUS && e.tauntCooldown <= 0) {
         e.tauntTimer = TAUNT_SHOW;
         e.tauntCooldown = TAUNT_SHOW + TAUNT_GAP + Math.random() * 2;
@@ -668,16 +737,16 @@
     }
   }
 
-  function checkSonos() {
+  function checkBonus() {
     if (game.state !== STATE.PLAY) return;
-    var s = game.sonos;
+    var s = game.bonus;
     if (!s || s.taken) return;
     var sx = s.x * TILE + TILE / 2, sy = s.y * TILE + TILE / 2;
     if (Math.abs(game.cat.x - sx) > 18 || Math.abs(game.cat.y - sy) > 18) return;
 
     s.taken = true;
-    game.score += SONOS_SCORE;
-    addFloater(sx, sy - 16, '+' + SONOS_SCORE, '#7ad4ff');
+    game.score += BONUS_SCORE;
+    addFloater(sx, sy - 16, '+' + BONUS_SCORE, '#7ad4ff');
     game.says = ['GUYS LOOK WHAT', 'I FOUND!'];
     game.saysTimer = 2.8;
     Sfx.pickup();
@@ -698,6 +767,7 @@
     if (game.grace > 0) return;
     for (var i = 0; i < game.enemies.length; i++) {
       var e = game.enemies[i];
+      if (e.harmless) continue;                    // not interested in Stussy
       if (e.flee > 0) continue;                    // too busy fleeing to grab anyone
       var dx = e.x - game.cat.x, dy = e.y - game.cat.y;
       if (dx * dx + dy * dy < CATCH_DIST * CATCH_DIST) {
@@ -778,7 +848,7 @@
         updateEnemies(dt);
         updateTaunts(dt);
         checkPickups();
-        checkSonos();
+        checkBonus();
         if (game.state === STATE.PLAY) checkCapture();
         break;
 
@@ -853,11 +923,11 @@
   }
 
   function drawMushrooms(t) {
-    var s = game.sonos;
+    var s = game.bonus;
     if (s && !s.taken) {
       var bobbing = ((t * 2) % 2) < 1;
       S.stamp(ctx, s.x * TILE + TILE / 2, s.y * TILE + TILE / 2, TILE, false, function (c) {
-        S.sonos(c, bobbing);
+        game.theme.bonus.draw(c, bobbing);
       });
     }
     game.mushrooms.forEach(function (m, i) {
@@ -1003,7 +1073,7 @@
 
     // the speaker, once it is in the basket and the law is involved
     if (game.police) {
-      S.stamp(ctx, 330, top + 28, 22, false, function (c) { S.sonos(c, false); });
+      S.stamp(ctx, 330, top + 28, 22, false, function (c) { game.theme.bonus.draw(c, false); });
     }
 
     // mushrooms still out there

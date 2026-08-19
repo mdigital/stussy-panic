@@ -54,9 +54,10 @@ Most levels are a freshly generated garden, but two are drawn by hand.
 
 | # | Level | Collect | Chasers |
 | --- | --- | --- | --- |
-| 1, 4+ | the garden | mushrooms | the photographer and Maryellen |
+| 1, 5+ | the garden | mushrooms | the photographer and Maryellen |
 | 2 | **Hawker St Mansion** | cheese and crackers | the photographer and **Charteris Bay Man** |
 | 3 | **Strait of Stussy** | sugared doughnuts | the photographer and Maryellen |
+| 4 | **The Beach** | paua shells | the photographer and **Willie** |
 
 **Hawker St Mansion** is a two-storey Wellington villa of the Mt Victoria sort:
 four bedrooms off an upstairs hallway, a staircase down the middle of the house,
@@ -73,14 +74,29 @@ low walls line the footpaths, and the people stride straight over them while
 Stussy goes the long way round. The Majestic Centre stands over the block at the
 top of the street — banded glass drum, terracotta column, spiked crown.
 
-### The speaker
+**The Beach** is open sand along the water, with rock groynes and driftwood
+between you and the shells. Maryellen stays home: the rival here is Willie, a
+pear-shaped man in light blue speedos and sunglasses who greets Stussy, when he
+catches her, with "HELLO DARLING".
 
-About half the time, someone has left a single smart speaker out on the level.
-Picking it up is worth 250 and Stussy announces it — *guys look what I found!* —
-at which point a policeman turns up at the far end and joins the chase, telling
-her it isn't hers. He steps over hedges like the rest of them and runs from a
-complaint like the rest of them, and he is gone again next level. The speaker
-shows in the status bar while he is after you.
+### The bonus item
+
+About half the time there is a bonus item out on the level, worth 250. Picking
+it up sets Stussy off — *guys look what I found!* — and brings a policeman out
+at the far end.
+
+In town the item is a single smart speaker, and the policeman comes after
+Stussy, telling her it isn't hers. He steps over hedges like the rest of them
+and runs from a complaint like the rest of them, and he is gone again next
+level.
+
+At the beach the item is a jar of Tumjal relish, and the policeman takes one
+look at Willie and forgets all about the cat. He follows him up and down the
+sand telling him to *put that away*, backing off whenever he closes, and never
+gets him. He is no danger to Stussy at all on that level — she can walk straight
+through him.
+
+The item shows in the status bar while the policeman is out.
 
 ## Steering
 
@@ -107,8 +123,9 @@ turning her at some junction you have long since forgotten about.
   yowls beat one long one.
 - **Getting caught** costs a Stussy. You start with three, plus one more every
   5,000 points. An enemy that is currently fleeing cannot catch you.
-- **The speaker** appears on about half of levels, scores 250, and brings a
-  third chaser out for the rest of that level.
+- **The bonus item** appears on about half of levels and scores 250. It brings a
+  policeman out for the rest of that level — after Stussy in town, after Willie
+  at the beach.
 - **Scoring:** 100 a mushroom, 25 each time you send someone running, and
   500 + 100 × level for clearing the garden.
 - **They talk.** Get within seven tiles and they start on you — Maryellen wants
@@ -164,7 +181,8 @@ The tests drive the real game in headless Chromium.
 npm install playwright-core          # plus a Chromium build
 CHROMIUM=/path/to/chrome node tests/rules.test.js        # 26 rule checks
 CHROMIUM=/path/to/chrome node tests/steer.test.js        # 5 steering checks
-CHROMIUM=/path/to/chrome node tests/sonos.test.js        # 9 speaker checks
+CHROMIUM=/path/to/chrome node tests/sonos.test.js        # 9 bonus-item checks
+CHROMIUM=/path/to/chrome node tests/beach.test.js        # 12 beach checks
 CHROMIUM=/path/to/chrome node tests/mobile.test.js       # 11 touch checks
 CHROMIUM=/path/to/chrome node tests/music.test.js        # 6 soundtrack checks
 CHROMIUM=/path/to/chrome node tests/autoplay.test.js 90  # bot plays for 90s
@@ -196,6 +214,11 @@ too early lapses instead of firing later.
 (measured over 400 loads), that taking it scores and sets Stussy off, that a
 policeman appears as a third chaser across the level rather than on top of her,
 that he closes in, that yelling scares him too, and that he is gone next level.
+
+`beach.test.js` covers level 4: that it is the beach with nine shells, that
+Willie's line on catching Stussy is right, that the jar of Tumjal brings a
+policeman who chases *Willie* rather than her, that he trails without closing
+and never troubles her, and that Willie can still catch her.
 
 `music.test.js` taps the music bus with an analyser, records a loudness envelope
 and autocorrelates it: the track has to be audible and to pulse on the beat at

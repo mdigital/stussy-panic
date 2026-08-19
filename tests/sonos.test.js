@@ -24,7 +24,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     let seen = 0, runs = 400;
     for (let i = 0; i < runs; i++) {
       window.MushroomBother.goToLevel(1 + (i % 6));
-      if (window.MushroomBother.state.sonos) seen++;
+      if (window.MushroomBother.state.bonus) seen++;
     }
     return seen / runs;
   });
@@ -35,15 +35,15 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     window.MushroomBother.goToLevel(1);
     const g = window.MushroomBother.state;
     await new Promise(r => setTimeout(r, 2200));
-    if (!g.sonos) {                       // make sure it is there for the test
-      g.sonos = { x: Math.floor(g.cat.x / 32), y: Math.floor(g.cat.y / 32), taken: false };
+    if (!g.bonus) {                       // make sure it is there for the test
+      g.bonus = { x: Math.floor(g.cat.x / 32), y: Math.floor(g.cat.y / 32), taken: false };
     }
     const before = { score: g.score, enemies: g.enemies.length, police: !!g.police };
-    g.cat.x = g.sonos.x * 32 + 16; g.cat.y = g.sonos.y * 32 + 16;   // step onto it
+    g.cat.x = g.bonus.x * 32 + 16; g.cat.y = g.bonus.y * 32 + 16;   // step onto it
     await new Promise(r => setTimeout(r, 200));
     return {
       before: before,
-      taken: g.sonos.taken,
+      taken: g.bonus.taken,
       gained: g.score - before.score,
       says: g.says ? g.says.join(' ') : null,
       enemies: g.enemies.length,
@@ -100,8 +100,8 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     const g = window.MushroomBother.state;
     await new Promise(r => setTimeout(r, 2200));
     g.grace = 60;
-    if (!g.sonos) g.sonos = { x: 3, y: 3, taken: false };
-    g.cat.x = g.sonos.x * 32 + 16; g.cat.y = g.sonos.y * 32 + 16;
+    if (!g.bonus) g.bonus = { x: 3, y: 3, taken: false };
+    g.cat.x = g.bonus.x * 32 + 16; g.cat.y = g.bonus.y * 32 + 16;
     await new Promise(r => setTimeout(r, 150));
     g.police.x = g.cat.x + 70; g.police.y = g.cat.y + 40;
     g.police.tauntTimer = 2;

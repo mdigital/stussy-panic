@@ -189,7 +189,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 8: the two hand-drawn levels ----------------------------------------
   const themed = await p.evaluate(() => {
     const out = {};
-    [1, 2, 3, 4].forEach(lvl => {
+    [1, 2, 3, 4, 5].forEach(lvl => {
       const d = Maze.generate(lvl, lvl * 7919 + 104729);
       let low = 0, solid = 0;
       d.grid.forEach(row => row.forEach(t => {
@@ -200,14 +200,14 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     });
     return out;
   });
-  ok(themed[2].theme === 'mansion' && themed[3].theme === 'strait',
-     'level 2 is Hawker St Mansion and level 3 is the Strait of Stussy');
-  ok(themed[1].theme === 'garden' && themed[4].theme === 'garden',
+  ok(themed[2].theme === 'mansion' && themed[3].theme === 'strait' && themed[4].theme === 'beach',
+     'levels 2, 3 and 4 are the mansion, the street and the beach');
+  ok(themed[1].theme === 'garden' && themed[5].theme === 'garden',
      'the other levels are still generated gardens');
-  ok(themed[2].pickups === 9 && themed[3].pickups === 9,
-     'both hand-drawn levels hold nine collectibles');
-  ok(themed[2].low > 0 && themed[2].solid > 0 && themed[3].low > 0 && themed[3].solid > 0,
-     'both have furniture/planters to step over and walls/buildings that stop everyone');
+  ok(themed[2].pickups === 9 && themed[3].pickups === 9 && themed[4].pickups === 9,
+     'all three hand-drawn levels hold nine collectibles');
+  ok([2, 3, 4].every(l => themed[l].low > 0 && themed[l].solid > 0),
+     'each has low obstacles to step over and solid ones that stop everyone');
 
   // the two set pieces: a rowboat parked in the villa lounge, and the Majestic
   // Centre standing in a block on Victoria Street

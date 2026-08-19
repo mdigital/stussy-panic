@@ -109,6 +109,38 @@
     gunwale:   '#f2efe4',
     thwart:    '#c8a267',
     oar:       '#a87f45',
+    // the beach
+    speedo:    '#7ec4e8',
+    speedoLit: '#a8dcf5',
+    speedoDark:'#4b93bd',
+    sand:      '#e0c78c',
+    sandAlt:   '#d8bd7e',
+    sandDark:  '#bfa068',
+    wet:       '#c9ab72',
+    rock:      '#7b7468',
+    rockLit:   '#9c948a',
+    rockDark:  '#514c45',
+    drift:     '#b7a894',
+    driftLit:  '#d3c7b6',
+    driftDark: '#8a7c6a',
+    sea:       '#2f7fa8',
+    seaDeep:   '#1d5c80',
+    seaLit:    '#57a8c9',
+    foam:      '#eef6f7',
+    paua:      '#1f6b7a',
+    pauaLit:   '#41b0a8',
+    pauaPink:  '#b95f8f',
+    pauaShell: '#e8e2d2',
+
+    // a jar of Tumjal relish
+    jarLid:    '#d9ac3a',
+    jarLidLit: '#f0cf6a',
+    relish:    '#8f3524',
+    relishDk:  '#6a2318',
+    label:     '#3b2a5e',
+    labelLit:  '#5a4487',
+    gold:      '#e8b93c',
+
     anchor:    '#4a4d57',
     anchorLit: '#767a86',
     rope:      '#c9b07a',
@@ -560,6 +592,161 @@
     r(ctx, 7, y + 9, 1, 1, C.sugar);
   }
 
+  /* ------------------------------------------------ Willie, down the beach */
+
+  // Pear-shaped, light blue speedos, sunglasses, not a care in the world.
+  function drawWillie(ctx, frame, scared) {
+    var lx = frame === 0 ? 5 : 4, rx = frame === 0 ? 9 : 10;
+
+    // legs and jandals
+    r(ctx, lx, 12, 3, 3, C.skin);
+    r(ctx, rx, 12, 3, 3, C.skin);
+    r(ctx, lx, 14, 3, 1, C.skinDark);
+    r(ctx, rx, 14, 3, 1, C.skinDark);
+    r(ctx, lx - 1, 15, 4, 1, C.driftDark);
+    r(ctx, rx, 15, 4, 1, C.driftDark);
+
+    // the pear: narrow at the shoulders, wide at the hips
+    r(ctx, 6, 6, 5, 2, C.skin);                  // shoulders
+    r(ctx, 5, 8, 7, 2, C.skin);
+    r(ctx, 4, 10, 9, 3, C.skin);                 // hips, the widest part of him
+    r(ctx, 4, 12, 9, 1, C.skinDark);
+    r(ctx, 6, 8, 1, 2, C.skinDark);              // a suggestion of a belly
+    r(ctx, 10, 9, 1, 2, C.skinDark);
+
+    // the speedos
+    r(ctx, 4, 10, 9, 3, C.speedo);
+    r(ctx, 4, 10, 9, 1, C.speedoLit);
+    r(ctx, 8, 11, 1, 2, C.speedoDark);
+    r(ctx, 4, 12, 9, 1, C.speedoDark);
+
+    // arms
+    r(ctx, 3, 7, 2, 4, C.skin);
+    r(ctx, 12, 7, 2, 4, C.skin);
+
+    // head, sunglasses, and a fine head of hair
+    r(ctx, 5, 1, 6, 5, C.skin);
+    r(ctx, 5, 5, 6, 1, C.skinDark);
+    r(ctx, 5, 0, 6, 2, C.rockDark);              // hair
+    r(ctx, 4, 2, 8, 2, C.specs);                 // sunglasses, wraparound
+    r(ctx, 5, 2, 2, 1, C.seaLit);                // a glint off the lenses
+    r(ctx, 9, 2, 2, 1, C.seaLit);
+    if (scared) r(ctx, 7, 4, 2, 2, C.black);
+    else        r(ctx, 6, 4, 4, 1, C.skinDark);  // entirely pleased with himself
+  }
+
+  /* --------------------------------------------------------- the beach */
+
+  function drawSand(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = (((tx + ty) >> 1) & 1) ? C.sand : C.sandAlt;
+    ctx.fillRect(px, py, size, size);
+    var n = tileNoise(tx, ty);
+    ctx.fillStyle = C.sandDark;
+    if (n > 0.7) {                                  // ripples left by the tide
+      ctx.fillRect(px + 2 * u, py + 5 * u, 8 * u, u);
+      ctx.fillRect(px + 6 * u, py + 10 * u, 8 * u, u);
+    } else if (n > 0.5) {
+      ctx.fillRect(px + Math.floor(n * 12) * u, py + 8 * u, 3 * u, u);
+    }
+    if (n > 0.88) {                                 // an odd shell in the sand
+      ctx.fillStyle = C.pauaShell;
+      ctx.fillRect(px + 11 * u, py + 3 * u, 2 * u, u);
+    }
+  }
+
+  // Driftwood: low enough that a person just steps over it.
+  function drawDriftwood(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    drawSand(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px, py + 12 * u, size, 3 * u);
+    ctx.fillStyle = C.driftDark;
+    ctx.fillRect(px, py + 5 * u, size, 8 * u);
+    ctx.fillStyle = C.drift;
+    ctx.fillRect(px, py + 6 * u, size, 6 * u);
+    ctx.fillStyle = C.driftLit;
+    ctx.fillRect(px, py + 5 * u, size, 2 * u);      // bleached top, flat and steppable
+    ctx.fillStyle = C.driftDark;                    // grain and splits
+    var n = tileNoise(tx, ty);
+    ctx.fillRect(px + Math.floor(n * 10) * u, py + 8 * u, 5 * u, u);
+    ctx.fillRect(px + Math.floor(n * 6) * u, py + 10 * u, 4 * u, u);
+  }
+
+  // Rocks: nobody gets over these.
+  function drawRock(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    drawSand(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px + u, py + 13 * u, 14 * u, 3 * u);
+    var rows = [[3, 10], [2, 12], [1, 14], [1, 14], [1, 14], [2, 12], [3, 10]];
+    ctx.fillStyle = C.rockDark;
+    for (var i = 0; i < rows.length; i++) {
+      ctx.fillRect(px + rows[i][0] * u, py + (i * 2) * u, rows[i][1] * u, 2 * u);
+    }
+    ctx.fillStyle = C.rock;
+    for (var j = 0; j < rows.length - 1; j++) {
+      ctx.fillRect(px + (rows[j][0] + 1) * u, py + (j * 2) * u, (rows[j][1] - 2) * u, 2 * u);
+    }
+    ctx.fillStyle = C.rockLit;
+    ctx.fillRect(px + 4 * u, py + u, 7 * u, 2 * u);
+    ctx.fillStyle = C.rockDark;
+    var n = tileNoise(tx, ty);
+    ctx.fillRect(px + (3 + Math.floor(n * 7)) * u, py + 6 * u, 3 * u, u);
+  }
+
+  // A paua shell, picked up off the sand.
+  function drawPaua(ctx, bob) {
+    var y = 4 + (bob ? 1 : 0);
+    r(ctx, 4, y + 1, 8, 2, C.paua);
+    r(ctx, 3, y + 3, 10, 4, C.paua);
+    r(ctx, 4, y + 7, 8, 2, C.paua);
+    r(ctx, 4, y + 2, 7, 1, C.pauaLit);          // the shine across the whorl
+    r(ctx, 5, y + 4, 5, 1, C.pauaLit);
+    r(ctx, 6, y + 5, 4, 1, C.pauaPink);
+    r(ctx, 8, y + 6, 3, 1, C.pauaLit);
+    r(ctx, 3, y + 7, 9, 1, C.pauaShell);        // pale lip
+    r(ctx, 11, y + 3, 2, 3, C.pauaShell);
+  }
+
+  // A jar of Tumjal eggplant relish: gold lid, purple label, gold letters.
+  function drawTumjal(ctx, bob) {
+    var y = 1 + (bob ? 1 : 0);
+    r(ctx, 5, y + 1, 7, 2, C.jarLid);           // lid
+    r(ctx, 5, y + 1, 7, 1, C.jarLidLit);
+    r(ctx, 4, y + 3, 9, 11, C.relishDk);        // jar of relish
+    r(ctx, 5, y + 3, 7, 10, C.relish);
+    r(ctx, 4, y + 5, 9, 6, C.label);            // the label band
+    r(ctx, 4, y + 5, 9, 1, C.labelLit);
+    r(ctx, 5, y + 6, 7, 1, C.gold);             // TUMJAL, near enough at this size
+    r(ctx, 7, y + 8, 3, 3, C.gold);             // the eggplant, in gold
+    r(ctx, 8, y + 8, 1, 3, C.label);
+    r(ctx, 5, y + 10, 1, 1, C.gold);            // stars
+    r(ctx, 11, y + 9, 1, 1, C.gold);
+  }
+
+  // The sea, painted right across the top of the beach.
+  function drawSea(ctx, px, py, size) {
+    var u = size / UNIT;
+    var W = 25 * UNIT;                          // the full width of the level
+    function q(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(px + x * u, py + y * u, w * u, h * u); }
+
+    q(0, 0, W, 26, C.seaDeep);
+    q(0, 4, W, 20, C.sea);
+    for (var i = 0; i < 5; i++) {               // swell lines rolling in
+      var y = 3 + i * 4;
+      for (var x = (i % 2) * 6; x < W; x += 13) {
+        q(x, y, 7, 1, C.seaLit);
+      }
+    }
+    // the wash breaking along the sand
+    q(0, 24, W, 3, C.foam);
+    for (var x2 = 0; x2 < W; x2 += 5) {
+      q(x2, 27, 3, 1, C.foam);
+      q(x2 + 2, 23, 2, 1, C.foam);
+    }
+  }
+
   /* ------------------------------------------------------- big decorations */
 
   // A clinker rowboat, three tiles of it, parked in the lounge as though that
@@ -793,6 +980,14 @@
     doughnut: drawDoughnut,
 
     rocker: drawRocker,
+
+    willie: drawWillie,
+    sand: drawSand,
+    driftwood: drawDriftwood,
+    rock: drawRock,
+    paua: drawPaua,
+    tumjal: drawTumjal,
+    sea: drawSea,
     sonos: drawSonos,
     rowboat: drawRowboat,
     majestic: drawMajestic,

@@ -162,6 +162,7 @@
    *   S  Stussy   P  photographer      R  the rival chaser
    *   T  staircase        B  rowboat (decoration, walk right past it)
    *   M  the Majestic Centre, a landmark built into a block
+   *   W  the sea, painted right across the top of the beach
    *
    * HAWKER ST MANSION — a two-storey Wellington villa of the Mt Victoria sort:
    * bedrooms off an upstairs hallway, a staircase down the middle, lounge and
@@ -212,8 +213,31 @@
     '#########################'
   ];
 
-  var HAND_DRAWN = { 2: MANSION, 3: STRAIT };
-  var THEMES = { 2: 'mansion', 3: 'strait' };
+  /* THE BEACH — open sand along the water, rock groynes and driftwood between
+   * you and the shells. The sea across the top is scenery: nobody swims.
+   */
+  var BEACH = [
+    'W########################',
+    '#########################',
+    '#......................P#',
+    '#.c...n.....c.....n...c.#',
+    '#..###...###...###...##.#',
+    '#..#.......#.....#....#.#',
+    '#nn#.c..nn.#..c..#.nn.#.#',
+    '#..#...#...#..#..#....#.#',
+    '#......#......#....c..#.#',
+    '#.###..#..###.#..###..#.#',
+    '#...#.....#...#....#....#',
+    '#.c.#..nn.#.c.#..nn.#.c.#',
+    '#...#.....#...#....#....#',
+    '#.###...###...###...###.#',
+    '#.....nn.....nn.....nn..#',
+    '#S.....................R#',
+    '#########################'
+  ];
+
+  var HAND_DRAWN = { 2: MANSION, 3: STRAIT, 4: BEACH };
+  var THEMES = { 2: 'mansion', 3: 'strait', 4: 'beach' };
 
   // Which look a level wears — the generated ones are all gardens.
   function themeFor(level) {
@@ -242,6 +266,7 @@
           case 'T': grid[y][x] = FLOOR; decor.push({ x: x, y: y, kind: 'stairs' }); break;
           case 'B': grid[y][x] = FLOOR; decor.push({ x: x, y: y, kind: 'rowboat' }); break;
           case 'M': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'majestic' }); break;
+          case 'W': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'sea' }); break;
           default:  grid[y][x] = FLOOR;
         }
       }
