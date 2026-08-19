@@ -11,7 +11,13 @@ const PAGE = 'file://' + path.join(__dirname, '..', 'index.html');
   const p = await b.newPage({ viewport: { width: 900, height: 700 } });
   const errors = [];
   p.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
-  p.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
+  p.on('console', m => {
+    if (m.type() !== 'error') return;
+    // assets/title.png is optional; the 404 when it is absent is expected
+    const loc = m.location && m.location();
+    if (loc && /assets\/title\.png/.test(loc.url || '')) return;
+    errors.push('CONSOLE: ' + m.text());
+  });
 
   await p.goto(PAGE);
   await p.waitForTimeout(400);

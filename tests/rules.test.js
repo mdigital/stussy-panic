@@ -70,8 +70,18 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   await p.waitForTimeout(600);
   const mid = await p.evaluate(() => ({ c: window.MushroomBother.state.complaint, complaining: window.MushroomBother.state.complaining }));
   ok(mid.c < 100 && mid.complaining, 'holding SPACE drains the meter while complaining (' + Math.round(mid.c) + ')');
-  await p.waitForTimeout(3200);
-  const dry = await p.evaluate(() => ({ c: window.MushroomBother.state.complaint, ex: window.MushroomBother.state.exhausted, complaining: window.MushroomBother.state.complaining }));
+  // 600ms at 60 units a second should take roughly 36 off the meter
+  ok(mid.c > 45 && mid.c < 80,
+     'and it drains at the doubled rate — ' + Math.round(100 - mid.c) + ' units in 600ms');
+  // poll for the moment it runs dry — at the doubled rate that is ~1.7s in,
+  // and the recharge starts soon after, so a fixed wait would sample too late
+  const dry = await p.evaluate(async () => {
+    const g = window.MushroomBother.state;
+    for (let i = 0; i < 100 && !g.exhausted; i++) {
+      await new Promise(r => setTimeout(r, 40));
+    }
+    return { c: g.complaint, ex: g.exhausted, complaining: g.complaining };
+  });
   ok(dry.c === 0 && dry.ex && !dry.complaining, 'meter empties and the cat loses its voice');
   await p.waitForTimeout(1200);
   const stillHeld = await p.evaluate(() => window.MushroomBother.state.complaining);
@@ -196,7 +206,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 8: the two hand-drawn levels ----------------------------------------
   const themed = await p.evaluate(() => {
     const out = {};
-    [1, 2, 3, 4, 5, 6].forEach(lvl => {
+    [1, 2, 3, 4, 5, 6, 7].forEach(lvl => {
       const d = Maze.generate(lvl, lvl * 7919 + 104729);
       let low = 0, solid = 0;
       d.grid.forEach(row => row.forEach(t => {
@@ -208,13 +218,14 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     return out;
   });
   ok(themed[2].theme === 'mansion' && themed[3].theme === 'strait' &&
-     themed[4].theme === 'beach' && themed[5].theme === 'supermarket',
-     'levels 2 to 5 are the mansion, the street, the beach and the supermarket');
-  ok(themed[1].theme === 'garden' && themed[6].theme === 'garden',
+     themed[4].theme === 'beach' && themed[5].theme === 'supermarket' &&
+     themed[6].theme === 'miramar',
+     'levels 2 to 6 are the mansion, the street, the beach, the supermarket and Miramar');
+  ok(themed[1].theme === 'garden' && themed[7].theme === 'garden',
      'the other levels are still generated gardens');
-  ok([2, 3, 4, 5].every(l => themed[l].pickups === 9),
-     'all four hand-drawn levels hold nine collectibles');
-  ok([2, 3, 4, 5].every(l => themed[l].low > 0 && themed[l].solid > 0),
+  ok([2, 3, 4, 5, 6].every(l => themed[l].pickups === 9),
+     'all five hand-drawn levels hold nine collectibles');
+  ok([2, 3, 4, 5, 6].every(l => themed[l].low > 0 && themed[l].solid > 0),
      'each has low obstacles to step over and solid ones that stop everyone');
 
   // the two set pieces: a rowboat parked in the villa lounge, and the Majestic
@@ -245,13 +256,15 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // what each level looks like and who is chasing on it
   const look = await p.evaluate(async () => {
     const out = {};
-    for (const lvl of [2, 3, 5]) {
+    for (const lvl of [2, 3, 5, 6]) {
       window.MushroomBother.goToLevel(lvl);
       await new Promise(r => setTimeout(r, 60));
       const g = window.MushroomBother.state;
       out[lvl] = { name: g.theme.name, caught: g.theme.rival.caught,
                    rival: g.landlord.sayings[0].join(' '),
-                   sayings: g.landlord.sayings.map(x => x.join(' ')) };
+                   sayings: g.landlord.sayings.map(x => x.join(' ')),
+                   photogSayings: g.photographer.sayings.map(x => x.join(' ')),
+                   photogCaught: g.photographer.caughtText };
     }
     return out;
   });
@@ -263,6 +276,14 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(look[3].rival === "WHERE'S YOUR RENT!?" && /MARYELLEN/.test(look[3].caught),
      'Maryellen and the photographer are the pair on the street level');
   ok(look[5].name === 'THE SUPERMARKET', 'level 5 announces itself as ' + look[5].name);
+  ok(look[6].name === 'MIRAMAR', 'level 6 announces itself as ' + look[6].name);
+  const wantPJ = ['YOU SHALL NOT PASS!', 'FRAN AND I WELCOME YOU TO OUR KINGDOM'];
+  ok(wantPJ.every(l => look[6].sayings.indexOf(l) >= 0) && look[6].sayings.length === wantPJ.length,
+     'Peter Jackson says: ' + look[6].sayings.map(l => '"' + l + '"').join(' and '));
+  ok(/ALIEN/.test(look[6].photogCaught) && look[6].photogSayings.length > 0,
+     'and an alien has taken the photographer\'s place — caught banner "' + look[6].photogCaught + '"');
+  ok(look[5].photogCaught === 'SNAPPED BY THE PHOTOGRAPHER!',
+     'while on every other level the photographer is still himself');
   const wantStaff = ['CLUB+ CARD?', 'SECURITY TO AISLE 3'];
   ok(wantStaff.every(l => look[5].sayings.indexOf(l) >= 0) &&
      look[5].sayings.length === wantStaff.length,

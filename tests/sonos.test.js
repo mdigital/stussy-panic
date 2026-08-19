@@ -13,7 +13,13 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   const p = await b.newPage({ viewport: { width: 840, height: 640 }, deviceScaleFactor: 2 });
   const errors = [];
   p.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
-  p.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
+  p.on('console', m => {
+    if (m.type() !== 'error') return;
+    // assets/title.png is optional; the 404 when it is absent is expected
+    const loc = m.location && m.location();
+    if (loc && /assets\/title\.png/.test(loc.url || '')) return;
+    errors.push('CONSOLE: ' + m.text());
+  });
   await p.goto(PAGE);
   await p.waitForTimeout(300);
 

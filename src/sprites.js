@@ -175,6 +175,31 @@
     pnsYellow: '#ffdd00',
     pnsBlack:  '#111111',
 
+    // Miramar
+    seal:      '#6a6a72',
+    sealAlt:   '#61616a',
+    sealLine:  '#e8e2c8',
+    berm:      '#5c9944',
+    board:     '#d8d2c2',
+    boardAlt:  '#c2b8a2',
+    boardDark: '#8a8272',
+    roof:      '#a33d30',
+    roofAlt:   '#3d5a78',
+    roofDark:  '#5e2620',
+    doorBlue:  '#31608c',
+    pjShirt:   '#2e2e34',
+    pjHair:    '#5a4632',
+    pjBeard:   '#6b5740',
+    pjShorts:  '#4a5a44',
+    alienSkin: '#8a9a58',
+    alienLit:  '#b0bd7a',
+    alienDark: '#5a663a',
+    alienSpot: '#3d4628',
+    tendril:   '#2e3320',
+    mandible:  '#d8cfa8',
+    alienEye:  '#ffd23e',
+    mesh:      '#3a3f4a',
+
     anchor:    '#4a4d57',
     anchorLit: '#767a86',
     rope:      '#c9b07a',
@@ -624,6 +649,160 @@
     r(ctx, 11, y + 7, 1, 1, C.sugar);
     r(ctx, 8, y + 2, 1, 1, C.sugar);
     r(ctx, 7, y + 9, 1, 1, C.sugar);
+  }
+
+  /* ------------------------------------------------------------- Miramar */
+
+  // Suburban street: chip seal with the odd centre line and berm alongside.
+  function drawSeal(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = ((tx + ty) & 1) ? C.seal : C.sealAlt;
+    ctx.fillRect(px, py, size, size);
+    var n = tileNoise(tx, ty);
+    if (n > 0.78) {                                 // centre line dashes
+      ctx.fillStyle = C.sealLine;
+      ctx.fillRect(px + 7 * u, py + 4 * u, 2 * u, 8 * u);
+    } else if (n > 0.6) {                           // a strip of grass berm
+      ctx.fillStyle = C.berm;
+      ctx.fillRect(px, py + 12 * u, size, 4 * u);
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+      ctx.fillRect(px, py + 12 * u, size, u);
+    } else if (n > 0.5) {                           // patched seal
+      ctx.fillStyle = 'rgba(0,0,0,0.08)';
+      ctx.fillRect(px + 3 * u, py + 5 * u, 9 * u, 6 * u);
+    }
+  }
+
+  // A weatherboard house: nobody gets through somebody's living room. Each
+  // tile is one little detached cottage — gabled roof, a gap to the neighbours
+  // — so a block of them reads as a row of houses, not shelving.
+  function drawHouse(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    drawSeal(ctx, px, py, size, tx, ty);
+    var n = tileNoise(tx, ty);
+    var roof = (n > 0.5) ? C.roof : C.roofAlt;
+
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px + u, py + 15 * u, 14 * u, u);
+
+    // the gable, narrowing to a ridge
+    var rows = [[7, 2], [5, 6], [3, 10], [1, 14]];
+    for (var i = 0; i < rows.length; i++) {
+      ctx.fillStyle = C.roofDark;
+      ctx.fillRect(px + rows[i][0] * u, py + (i + 1) * u, rows[i][1] * u, u);
+      ctx.fillStyle = roof;
+      ctx.fillRect(px + (rows[i][0]) * u, py + (i + 1) * u, (rows[i][1] - 1) * u, u);
+    }
+    ctx.fillStyle = C.roofDark;
+    ctx.fillRect(px + u, py + 5 * u, 14 * u, u);         // eaves
+    if (n > 0.8) {
+      ctx.fillStyle = C.boardDark;                       // a chimney
+      ctx.fillRect(px + 11 * u, py, 2 * u, 3 * u);
+    }
+
+    // weatherboard walls, inset so each house stands apart
+    ctx.fillStyle = (n > 0.72) ? C.boardAlt : C.board;
+    ctx.fillRect(px + 2 * u, py + 6 * u, 12 * u, 9 * u);
+    ctx.fillStyle = C.boardDark;
+    ctx.fillRect(px + 2 * u, py + 9 * u, 12 * u, u);
+    ctx.fillRect(px + 2 * u, py + 12 * u, 12 * u, u);
+
+    // a window and the front door
+    ctx.fillStyle = C.window;
+    ctx.fillRect(px + 3 * u, py + 7 * u, 4 * u, 4 * u);
+    ctx.fillStyle = C.windowLit;
+    ctx.fillRect(px + 4 * u, py + 8 * u, 2 * u, 2 * u);
+    ctx.fillStyle = (n > 0.4) ? C.doorBlue : C.roofDark;
+    ctx.fillRect(px + 9 * u, py + 8 * u, 4 * u, 7 * u);
+    ctx.fillStyle = C.sealLine;
+    ctx.fillRect(px + 12 * u, py + 11 * u, u, u);
+  }
+
+  /* --------------------------------------- the film-maker up on the hill */
+
+  function drawJackson(ctx, frame, scared) {
+    var lx = frame === 0 ? 5 : 4, rx = frame === 0 ? 8 : 9;
+
+    // famously barefoot, in shorts
+    r(ctx, lx, 12, 2, 3, C.skin);
+    r(ctx, rx, 12, 2, 3, C.skin);
+    r(ctx, lx, 14, 3, 1, C.skinDark);
+    r(ctx, rx, 14, 3, 1, C.skinDark);
+    r(ctx, 4, 10, 8, 3, C.pjShorts);
+    r(ctx, 4, 12, 8, 1, 'rgba(0,0,0,0.25)');
+
+    // dark shirt over a solid frame
+    r(ctx, 4, 6, 8, 4, C.pjShirt);
+    r(ctx, 3, 7, 2, 4, C.pjShirt);
+    r(ctx, 11, 7, 2, 4, C.pjShirt);
+    r(ctx, 3, 10, 2, 1, C.skin);
+    r(ctx, 11, 10, 2, 1, C.skin);
+
+    // head: curly mop, round spectacles, the beard
+    r(ctx, 5, 2, 6, 4, C.skin);
+    r(ctx, 4, 0, 8, 2, C.pjHair);
+    r(ctx, 4, 2, 1, 2, C.pjHair);
+    r(ctx, 11, 2, 1, 2, C.pjHair);
+    r(ctx, 5, 3, 2, 1, C.specs);              // round frames
+    r(ctx, 9, 3, 2, 1, C.specs);
+    r(ctx, 7, 3, 2, 1, C.specs);              // bridge
+    r(ctx, 5, 4, 1, 1, C.specs);  r(ctx, 10, 4, 1, 1, C.specs);
+    r(ctx, 6, 3, 1, 1, C.windowLit);          // a glint
+    r(ctx, 5, 5, 6, 2, C.pjBeard);            // the beard, covering chin and jaw
+    r(ctx, 6, 6, 4, 1, C.pjBeard);
+    if (scared) r(ctx, 7, 5, 2, 1, C.black);
+  }
+
+  /* -------------------------------------- the hunter from somewhere else */
+
+  // An alien trophy-hunter of the crested, mandibled sort. Original pixels.
+  function drawAlien(ctx, frame, scared) {
+    var lx = frame === 0 ? 5 : 4, rx = frame === 0 ? 8 : 9;
+
+    // legs in mesh armour
+    r(ctx, lx, 11, 2, 4, C.alienSkin);
+    r(ctx, rx, 11, 2, 4, C.alienSkin);
+    r(ctx, lx, 12, 2, 1, C.mesh);
+    r(ctx, rx, 12, 2, 1, C.mesh);
+    r(ctx, lx - 1, 14, 3, 1, C.alienDark);
+    r(ctx, rx, 14, 3, 1, C.alienDark);
+
+    // torso: mottled hide with a mesh band and a shoulder plate
+    r(ctx, 4, 6, 8, 5, C.alienSkin);
+    r(ctx, 4, 6, 8, 1, C.alienLit);
+    r(ctx, 5, 8, 2, 1, C.alienSpot);
+    r(ctx, 9, 9, 2, 1, C.alienSpot);
+    r(ctx, 4, 9, 8, 1, C.mesh);
+    r(ctx, 10, 5, 3, 2, C.mesh);               // the plate
+    r(ctx, 10, 5, 3, 1, C.alienLit);
+    r(ctx, 3, 7, 2, 4, C.alienSkin);           // arms
+    r(ctx, 12, 7, 2, 4, C.alienSkin);
+    r(ctx, 12, 8, 2, 1, C.alienSpot);
+
+    // head: domed brow, deep-set glowing eyes, mandibles at the jaw
+    r(ctx, 5, 1, 6, 5, C.alienSkin);
+    r(ctx, 5, 1, 6, 1, C.alienLit);
+    r(ctx, 6, 3, 1, 1, C.alienEye);
+    r(ctx, 9, 3, 1, 1, C.alienEye);
+    r(ctx, 5, 3, 1, 1, C.alienDark);
+    r(ctx, 10, 3, 1, 1, C.alienDark);
+    r(ctx, 7, 4, 2, 1, C.alienDark);
+    // mandibles, splayed wider when it is rattled
+    var sp = scared ? 1 : 0;
+    r(ctx, 5 - sp, 5, 1, 2, C.mandible);
+    r(ctx, 10 + sp, 5, 1, 2, C.mandible);
+    r(ctx, 6, 5, 1, 1, C.mandible);
+    r(ctx, 9, 5, 1, 1, C.mandible);
+
+    // the crest of tendrils, swept back off the skull
+    for (var i = 0; i < 4; i++) {
+      r(ctx, 3 - (i > 1 ? 1 : 0), 0 + i, 2, 1, C.tendril);
+      r(ctx, 11 + (i > 1 ? 1 : 0), 0 + i, 2, 1, C.tendril);
+    }
+    r(ctx, 4, 0, 2, 1, C.tendril);
+    r(ctx, 10, 0, 2, 1, C.tendril);
+    r(ctx, 2, 4, 1, 2, C.tendril);
+    r(ctx, 13, 4, 1, 2, C.tendril);
   }
 
   /* ------------------------------------------------------- the supermarket */
@@ -1228,6 +1407,10 @@
     pizza: drawPizza,
     fascia: drawFascia,
     staff: drawStaff,
+    seal: drawSeal,
+    house: drawHouse,
+    jackson: drawJackson,
+    alien: drawAlien,
     sand: drawSand,
     driftwood: drawDriftwood,
     rock: drawRock,

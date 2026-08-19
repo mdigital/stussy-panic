@@ -26,6 +26,10 @@ press SPACE. Then the loading picture for ten seconds, and then the title
 screen. Both are boot-time only: restarting a game does not put you through them
 again.
 
+The loading picture is drawn in code by default, but if a file exists at
+`assets/title.png` it is shown verbatim instead — scaled to fit, letterboxed on
+black. Drop your artwork in at that path and it takes over on the next load.
+
 ## Playing it
 
 Open `index.html` in any modern browser. No build step, no server, no
@@ -62,11 +66,12 @@ Most levels are a freshly generated garden, but two are drawn by hand.
 
 | # | Level | Collect | Chasers |
 | --- | --- | --- | --- |
-| 1, 6+ | the garden | mushrooms | the photographer and Maryellen |
+| 1, 7+ | the garden | mushrooms | the photographer and Maryellen |
 | 2 | **Hawker St Mansion** | cheese and crackers | the photographer and **Charteris Bay Man** |
 | 3 | **Strait of Stussy** | sugared doughnuts | the photographer and Maryellen |
 | 4 | **The Beach** | life preserver rings | the photographer and **Willie** |
 | 5 | **The Supermarket** | salmon fillets | the photographer and Maryellen, on shift |
+| 6 | **Miramar** | mushrooms | **an alien** and **Peter Jackson** |
 
 **Hawker St Mansion** is a two-storey Wellington villa of the Mt Victoria sort:
 four bedrooms off an upstairs hallway, a staircase down the middle of the house,
@@ -97,6 +102,13 @@ Maryellen is on shift here in the black shirt with the yellow logo and the
 yellow stripe down her leg, and would like to know whether you have a Club+
 card — failing that, security to aisle 3. The bonus item on this level is a
 pizza.
+
+**Miramar** is the peninsula's street grid: blocks of weatherboard houses,
+hedges on the berms, the odd empty section. Stussy is back on the mushrooms and
+the bonus item is the speaker again. The locals have changed, though: Peter
+Jackson holds the rival's spot — "YOU SHALL NOT PASS!", and Fran and he welcome
+you to their kingdom — and the photographer's place has been taken by a crested,
+mandibled alien hunter of the sort that turns up around film country. It clicks.
 
 ### The bonus item
 
@@ -136,8 +148,9 @@ turning her at some junction you have long since forgotten about.
 - **Hedges** are low. The photographer and Maryellen step straight over them;
   Stussy has to go around.
 - **Trees** are tall. Nobody gets through a tree, cat or human.
-- **Complaining** empties the meter at 30 units a second out of 100. Let go and
-  after a short pause it refills at 13 a second. Run it all the way down and
+- **Complaining** empties the meter at 60 units a second out of 100 — well
+  under two seconds of continuous yowling. Let go and after a short pause it
+  refills at 13 a second. Run it all the way down and
   Stussy loses their voice until the meter climbs back past 22 — so short, timed
   yowls beat one long one.
 - **Getting caught** costs a Stussy. You start with three, plus one more every
@@ -202,7 +215,7 @@ The tests drive the real game in headless Chromium.
 ```bash
 npm install playwright-core          # plus a Chromium build
 CHROMIUM=/path/to/chrome node tests/boot.test.js         # 13 boot checks
-CHROMIUM=/path/to/chrome node tests/rules.test.js        # 26 rule checks
+CHROMIUM=/path/to/chrome node tests/rules.test.js        # 41 rule checks
 CHROMIUM=/path/to/chrome node tests/steer.test.js        # 5 steering checks
 CHROMIUM=/path/to/chrome node tests/sonos.test.js        # 9 bonus-item checks
 CHROMIUM=/path/to/chrome node tests/beach.test.js        # 12 beach checks

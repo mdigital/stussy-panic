@@ -261,8 +261,31 @@
     '#########################'
   ];
 
-  var HAND_DRAWN = { 2: MANSION, 3: STRAIT, 4: BEACH, 5: SUPERMARKET };
-  var THEMES = { 2: 'mansion', 3: 'strait', 4: 'beach', 5: 'supermarket' };
+  /* MIRAMAR — the peninsula's street grid: blocks of houses, hedges on the
+   * berms, and the odd empty section. Mushroom country.
+   */
+  var MIRAMAR = [
+    '#########################',
+    '#....n.....c...n.....c.P#',
+    '#.###..#.#..#.#..###..###',
+    '#.###..###..###..###..###',
+    '#c....c...n.....c....n..#',
+    '#.#.#..###..###..#.#..###',
+    '#.###..###..###..###..###',
+    '#....n.....n........n...#',
+    '#.###..###..#.#..###...##',
+    '#n###..###..###..###..###',
+    '#...c.....n...cn.....c..#',
+    '#.#.#..#.#..###..#.#..###',
+    '#.###..###..###..###..###',
+    '#.....n..c......n.......#',
+    '#.###..###..#.#..###..###',
+    '#S.....................R#',
+    '#########################'
+  ];
+
+  var HAND_DRAWN = { 2: MANSION, 3: STRAIT, 4: BEACH, 5: SUPERMARKET, 6: MIRAMAR };
+  var THEMES = { 2: 'mansion', 3: 'strait', 4: 'beach', 5: 'supermarket', 6: 'miramar' };
 
   // Which look a level wears — the generated ones are all gardens.
   function themeFor(level) {

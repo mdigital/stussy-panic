@@ -14,7 +14,13 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   const p = await b.newPage({ viewport: { width: 840, height: 660 } });
   const errors = [];
   p.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
-  p.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
+  p.on('console', m => {
+    if (m.type() !== 'error') return;
+    // assets/title.png is optional; the 404 when it is absent is expected
+    const loc = m.location && m.location();
+    if (loc && /assets\/title\.png/.test(loc.url || '')) return;
+    errors.push('CONSOLE: ' + m.text());
+  });
 
   await p.goto(PAGE);
   await p.waitForTimeout(500);
@@ -56,6 +62,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   await p.waitForTimeout(200);
   ok(await state() === 'loading', 'space brings up the loading picture');
 
+  const usingImage = await p.evaluate(() => window.Screens.usingImage());
   const load = await p.evaluate(() => {
     const c = document.getElementById('screen').getContext('2d');
     const near = (px, py, r, g, bb, tol) => {
@@ -79,7 +86,11 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     }
     return { ground, warm, black: near(400, 300, 0, 0, 0, 6) };
   });
-  ok(load.ground > 500, `the picture is drawn: ${load.ground} green samples across the ground`);
+  if (usingImage) {
+    ok(!load.black, 'the supplied title image is painted rather than a black screen');
+  } else {
+    ok(load.ground > 500, `the picture is drawn: ${load.ground} green samples across the ground`);
+  }
 
   // the synth wash runs under both screens and hands over to the game's own music
   const washing = await p.evaluate(() => ({
@@ -87,7 +98,9 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     ctx: window.Sfx.context() ? window.Sfx.context().state : 'none'
   }));
   ok(washing.on, `the synth wash is playing under it (audio context ${washing.ctx})`);
-  ok(load.warm > 300, `and the logo and the fires are up there in warm tones (${load.warm} samples)`);
+  if (!usingImage) {
+    ok(load.warm > 300, `and the logo and the fires are up there in warm tones (${load.warm} samples)`);
+  }
 
   // ---- it really does hold for ten seconds ---------------------------------
   const started = Date.now();

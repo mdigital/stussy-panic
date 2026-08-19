@@ -24,7 +24,7 @@
   var FLEE_TIME = 2.3;       // seconds an enemy keeps running after being yelled at
 
   var COMPLAINT_MAX = 100;
-  var COMPLAINT_DRAIN = 30;      // units per second while held
+  var COMPLAINT_DRAIN = 60;      // units per second while held
   var COMPLAINT_RECHARGE = 13;   // units per second once it has settled
   var RECHARGE_DELAY = 0.85;     // quiet seconds before it starts refilling
   var RECOVER_THRESHOLD = 22;    // after running dry, needs this much to be usable again
@@ -94,6 +94,29 @@
       },
       // Down here the law has other priorities than a cat with a jar.
       bonus: { draw: S.tumjal, chases: 'rival' }
+    },
+    miramar: {
+      name: 'MIRAMAR',
+      subtitle: 'nine mushrooms — welcome to the peninsula',
+      cleared: 'PENINSULA CLEARED!',
+      floor: S.seal, low: S.hedge, solid: S.house,
+      solidOverhead: false,
+      pickup: S.mushroom,
+      rival: {
+        draw: S.jackson,
+        sayings: [
+          ['YOU SHALL NOT PASS!'],
+          ['FRAN AND I WELCOME YOU', 'TO OUR KINGDOM']
+        ],
+        caught: 'YOU SHALL NOT PASS!'
+      },
+      // out here even the photographer has been replaced
+      photog: {
+        draw: S.alien,
+        sayings: [['CK-CK-CK-CK!'], ['*THERMAL LOCK*']],
+        caught: 'TAKEN BY THE ALIEN!'
+      },
+      bonus: { draw: S.sonos, chases: 'cat' }
     },
     supermarket: {
       name: 'THE SUPERMARKET',
@@ -368,9 +391,10 @@
     var marySpeed = Math.min(140, 96 + (level - 1) * 5);
     game.photographer = makeEntity(data.spawns.photographer, photoSpeed, true);
     game.landlord = makeEntity(data.spawns.landlord, marySpeed, true);
-    game.photographer.sayings = TAUNTS.photographer;
-    game.photographer.draw = S.photographer;
-    game.photographer.caughtText = 'SNAPPED BY THE PHOTOGRAPHER!';
+    var photog = game.theme.photog;
+    game.photographer.sayings = photog ? photog.sayings : TAUNTS.photographer;
+    game.photographer.draw = photog ? photog.draw : S.photographer;
+    game.photographer.caughtText = photog ? photog.caught : 'SNAPPED BY THE PHOTOGRAPHER!';
     game.landlord.sayings = game.theme.rival.sayings;
     game.landlord.draw = game.theme.rival.draw;
     game.landlord.caughtText = game.theme.rival.caught;

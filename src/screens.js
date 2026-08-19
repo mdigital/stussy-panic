@@ -7,6 +7,15 @@
 
   var S = global.Sprites;
 
+  // If assets/title.png exists it is shown verbatim as the loading picture,
+  // in place of the drawn one below. Drop the artwork in at that path and it
+  // takes over on the next reload; no code change needed.
+  var titleImage = new Image();
+  var titleImageReady = false;
+  titleImage.onload = function () { titleImageReady = true; };
+  titleImage.onerror = function () { titleImageReady = false; };
+  titleImage.src = 'assets/title.png';
+
   // Raster bar colours, in the spirit of the sixteen the machine actually had.
   var BARS = ['#ffe27a', '#ff9c3a', '#e2582c', '#c33ec0', '#6c5eb5', '#4fa8d8', '#57d356', '#b8c76f'];
 
@@ -184,6 +193,17 @@
   }
 
   function loading(ctx, t, W, H) {
+    // the supplied artwork, shown as-is: scaled to fit, letterboxed on black
+    if (titleImageReady) {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, W, H);
+      var scale = Math.min(W / titleImage.width, H / titleImage.height);
+      var dw = titleImage.width * scale, dh = titleImage.height * scale;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(titleImage, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      return;
+    }
+
     var GROUND = 430;
 
     // night sky, dithered the way the machine would have had to
@@ -253,5 +273,9 @@
                  'bold 22px "Courier New", monospace', '#ffffff', '#000000', 4);
   }
 
-  global.Screens = { crack: crack, loading: loading };
+  global.Screens = {
+    crack: crack,
+    loading: loading,
+    usingImage: function () { return titleImageReady; }
+  };
 })(window);
