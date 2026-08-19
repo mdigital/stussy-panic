@@ -127,9 +127,11 @@
     seaDeep:   '#1d5c80',
     seaLit:    '#57a8c9',
     foam:      '#eef6f7',
-    paua:      '#1f6b7a',
-    pauaLit:   '#41b0a8',
-    pauaPink:  '#b95f8f',
+    ringWhite: '#f4f2ea',
+    ringLit:   '#ffffff',
+    ringRed:   '#e2582c',
+    ringDark:  '#a83d1c',
+    ringRope:  '#d8c49a',
     pauaShell: '#e8e2d2',
 
     // a jar of Tumjal relish
@@ -695,18 +697,44 @@
     ctx.fillRect(px + (3 + Math.floor(n * 7)) * u, py + 6 * u, 3 * u, u);
   }
 
-  // A paua shell, picked up off the sand.
-  function drawPaua(ctx, bob) {
-    var y = 4 + (bob ? 1 : 0);
-    r(ctx, 4, y + 1, 8, 2, C.paua);
-    r(ctx, 3, y + 3, 10, 4, C.paua);
-    r(ctx, 4, y + 7, 8, 2, C.paua);
-    r(ctx, 4, y + 2, 7, 1, C.pauaLit);          // the shine across the whorl
-    r(ctx, 5, y + 4, 5, 1, C.pauaLit);
-    r(ctx, 6, y + 5, 4, 1, C.pauaPink);
-    r(ctx, 8, y + 6, 3, 1, C.pauaLit);
-    r(ctx, 3, y + 7, 9, 1, C.pauaShell);        // pale lip
-    r(ctx, 11, y + 3, 2, 3, C.pauaShell);
+  // A life preserver ring, washed up on the sand: white and red quarters with
+  // rope lashings, and a proper hole through the middle.
+  function drawLifeRing(ctx, bob) {
+    var cx = 8, cy = 8 + (bob ? 1 : 0);
+    var OUTER = 6.4, INNER = 3.0;
+
+    for (var y = 0; y < 16; y++) {
+      var dy = y - cy + 0.5;
+      if (Math.abs(dy) > OUTER) continue;
+      var outer = Math.sqrt(OUTER * OUTER - dy * dy);
+      var inner = Math.abs(dy) < INNER ? Math.sqrt(INNER * INNER - dy * dy) : 0;
+
+      // Each row is two arms either side of the hole; colour them by quadrant
+      // so the ring reads as the usual red-and-white.
+      var top = dy < 0;
+      var leftColour = top ? C.ringRed : C.ringWhite;
+      var rightColour = top ? C.ringWhite : C.ringRed;
+
+      var x0 = Math.round(cx - outer), x1 = Math.round(cx + outer);
+      var h0 = Math.round(cx - inner), h1 = Math.round(cx + inner);
+      if (inner > 0) {
+        r(ctx, x0, y, h0 - x0, 1, leftColour);
+        r(ctx, h1, y, x1 - h1, 1, rightColour);
+      } else {
+        r(ctx, x0, y, cx - x0, 1, leftColour);
+        r(ctx, cx, y, x1 - cx, 1, rightColour);
+      }
+    }
+
+    // shading round the outside, a highlight on the top left, and the ropes
+    r(ctx, 2, cy - 1, 1, 2, C.ringDark);
+    r(ctx, 13, cy - 1, 1, 2, C.ringDark);
+    r(ctx, cx - 1, cy + 5, 2, 1, C.ringDark);
+    r(ctx, 4, cy - 4, 2, 1, C.ringLit);
+    r(ctx, cx - 1, cy - 6, 2, 1, C.ringRope);   // lashings at the quarters
+    r(ctx, cx - 1, cy + 4, 2, 1, C.ringRope);
+    r(ctx, 2, cy - 1, 2, 1, C.ringRope);
+    r(ctx, 12, cy - 1, 2, 1, C.ringRope);
   }
 
   // A jar of Tumjal eggplant relish: gold lid, purple label, gold letters.
@@ -985,7 +1013,7 @@
     sand: drawSand,
     driftwood: drawDriftwood,
     rock: drawRock,
-    paua: drawPaua,
+    lifering: drawLifeRing,
     tumjal: drawTumjal,
     sea: drawSea,
     sonos: drawSonos,

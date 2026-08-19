@@ -57,7 +57,7 @@ Most levels are a freshly generated garden, but two are drawn by hand.
 | 1, 5+ | the garden | mushrooms | the photographer and Maryellen |
 | 2 | **Hawker St Mansion** | cheese and crackers | the photographer and **Charteris Bay Man** |
 | 3 | **Strait of Stussy** | sugared doughnuts | the photographer and Maryellen |
-| 4 | **The Beach** | paua shells | the photographer and **Willie** |
+| 4 | **The Beach** | life preserver rings | the photographer and **Willie** |
 
 **Hawker St Mansion** is a two-storey Wellington villa of the Mt Victoria sort:
 four bedrooms off an upstairs hallway, a staircase down the middle of the house,
@@ -75,7 +75,7 @@ Stussy goes the long way round. The Majestic Centre stands over the block at the
 top of the street — banded glass drum, terracotta column, spiked crown.
 
 **The Beach** is open sand along the water, with rock groynes and driftwood
-between you and the shells. Maryellen stays home: the rival here is Willie, a
+between you and the nine life preserver rings somebody has left lying about. Maryellen stays home: the rival here is Willie, a
 pear-shaped man in light blue speedos and sunglasses who greets Stussy, when he
 catches her, with "HELLO DARLING".
 
@@ -215,7 +215,7 @@ too early lapses instead of firing later.
 policeman appears as a third chaser across the level rather than on top of her,
 that he closes in, that yelling scares him too, and that he is gone next level.
 
-`beach.test.js` covers level 4: that it is the beach with nine shells, that
+`beach.test.js` covers level 4: that it is the beach with nine rings, that
 Willie's line on catching Stussy is right, that the jar of Tumjal brings a
 policeman who chases *Willie* rather than her, that he trails without closing
 and never troubles her, and that Willie can still catch her.

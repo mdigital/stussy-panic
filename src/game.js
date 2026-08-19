@@ -75,11 +75,11 @@
     },
     beach: {
       name: 'THE BEACH',
-      subtitle: 'nine paua shells — mind the driftwood',
+      subtitle: 'nine life rings — mind the driftwood',
       cleared: 'BEACH CLEARED!',
       floor: S.sand, low: S.driftwood, solid: S.rock,
       solidOverhead: false,
-      pickup: S.paua,
+      pickup: S.lifering,
       decor: { sea: S.sea },
       rival: {
         draw: S.willie,

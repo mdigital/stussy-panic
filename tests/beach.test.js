@@ -28,7 +28,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
              police: !!g.police };
   });
   ok(info.name === 'THE BEACH', 'level 4 is ' + info.name);
-  ok(info.left === 9, 'nine shells to collect');
+  ok(info.left === 9, 'nine life rings to collect');
   ok(info.caught === 'HELLO DARLING', `Willie's line when he catches her: "${info.caught}"`);
   ok(!info.police, 'no policeman until the jar is picked up');
 
