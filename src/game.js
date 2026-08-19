@@ -28,6 +28,9 @@
   var RECHARGE_DELAY = 0.85;     // quiet seconds before it starts refilling
   var RECOVER_THRESHOLD = 22;    // after running dry, needs this much to be usable again
 
+  var SONOS_CHANCE = 0.5;    // how often the speaker turns up on a level
+  var SONOS_SCORE = 250;
+
   var STARTING_LIVES = 3;
   var EXTRA_LIFE_EVERY = 5000;
 
@@ -60,7 +63,7 @@
       floor: S.floor, low: S.furniture, solid: S.wall,
       solidOverhead: false,
       pickup: S.cheese,
-      decor: { stairs: S.stairs },
+      decor: { stairs: S.stairs, rowboat: S.rowboat },
       rival: {
         draw: S.rocker,
         lines: ['FUCK OFF STUSSY'],
@@ -74,6 +77,7 @@
       floor: S.street, low: S.planter, solid: S.building,
       solidOverhead: false,
       pickup: S.doughnut,
+      decor: { majestic: S.majestic },
       rival: {
         draw: S.landlord,
         lines: ["WHERE'S YOUR RENT!?"],
@@ -99,6 +103,8 @@
     photographer: ['BAD REVIEW ON', 'TRADEME HEY!?!'],
     landlord: ["WHERE'S YOUR RENT!?"]
   };
+
+  TAUNTS.police = ["THAT'S NOT YOURS!"];
 
   var TAUNT_RADIUS = 7 * TILE;   // how close they get before they start on you
   var TAUNT_SHOW = 2.2;          // seconds a line stays up
@@ -286,6 +292,8 @@
       exhausted: false,
       quietFor: 0,
       complaining: false,
+      says: null,          // something Stussy comes out with, unprompted
+      saysTimer: 0,
       phrase: COMPLAINTS[0],
       phraseTimer: 0,
       grace: 0
@@ -310,14 +318,65 @@
     game.photographer = makeEntity(data.spawns.photographer, photoSpeed, true);
     game.landlord = makeEntity(data.spawns.landlord, marySpeed, true);
     game.photographer.lines = TAUNTS.photographer;
+    game.photographer.draw = S.photographer;
+    game.photographer.caughtText = 'SNAPPED BY THE PHOTOGRAPHER!';
     game.landlord.lines = game.theme.rival.lines;
+    game.landlord.draw = game.theme.rival.draw;
+    game.landlord.caughtText = game.theme.rival.caught;
     game.enemies = [game.photographer, game.landlord];
+    game.police = null;
+
+    placeSonos(data);
 
     game.complaint = COMPLAINT_MAX;
     game.exhausted = false;
+    game.says = null;
+    game.saysTimer = 0;
     game.grace = 1.5;
     game.state = STATE.INTRO;
     game.timer = 2.0;
+  }
+
+  // The speaker turns up on about half the levels, dropped somewhere Stussy can
+  // reach but nowhere near where she starts.
+  function placeSonos(data) {
+    game.sonos = null;
+    if (Math.random() >= SONOS_CHANCE) return;
+
+    var taken = {};
+    game.mushrooms.forEach(function (m) { taken[m.x + ',' + m.y] = true; });
+
+    var options = [];
+    for (var y = 1; y < ROWS - 1; y++) {
+      for (var x = 1; x < COLS - 1; x++) {
+        var d = data.reachable[x + y * COLS];
+        if (d > 6 && !taken[x + ',' + y]) options.push({ x: x, y: y });
+      }
+    }
+    if (!options.length) return;
+    var spot = options[(Math.random() * options.length) | 0];
+    game.sonos = { x: spot.x, y: spot.y, taken: false };
+  }
+
+  // Nicking it brings a policeman out, who chases like everybody else.
+  function callPolice() {
+    var corner = { x: COLS - 2, y: ROWS - 2 };
+    var best = null, bestDist = -1;
+    for (var y = 1; y < ROWS - 1; y++) {
+      for (var x = 1; x < COLS - 1; x++) {
+        if (tileAt(x, y) !== FLOOR) continue;
+        var d = Math.abs(x - Math.floor(game.cat.x / TILE)) + Math.abs(y - Math.floor(game.cat.y / TILE));
+        if (d > bestDist) { bestDist = d; best = { x: x, y: y }; }
+      }
+    }
+    var spawn = best || corner;
+    var police = makeEntity(spawn, Math.min(146, 108 + (game.level - 1) * 6), true);
+    police.lines = TAUNTS.police;
+    police.draw = S.police;
+    police.caughtText = 'COLLARED BY THE POLICEMAN!';
+    police.tauntCooldown = 0.6;
+    game.police = police;
+    game.enemies.push(police);
   }
 
   function resetPositions() {
@@ -511,6 +570,9 @@
     if (tileAt(ax, ay) === TREE) { ax = catTile.x; ay = catTile.y; }
     var ambushField = humanField(ax, ay);
     updateEnemy(game.landlord, dt, ambushField, fleeField);
+
+    // the policeman comes straight at you, same as the photographer
+    if (game.police) updateEnemy(game.police, dt, fleeField, fleeField);
   }
 
   // The chasers call out whenever they get near Stussy — and again at the
@@ -606,6 +668,24 @@
     }
   }
 
+  function checkSonos() {
+    if (game.state !== STATE.PLAY) return;
+    var s = game.sonos;
+    if (!s || s.taken) return;
+    var sx = s.x * TILE + TILE / 2, sy = s.y * TILE + TILE / 2;
+    if (Math.abs(game.cat.x - sx) > 18 || Math.abs(game.cat.y - sy) > 18) return;
+
+    s.taken = true;
+    game.score += SONOS_SCORE;
+    addFloater(sx, sy - 16, '+' + SONOS_SCORE, '#7ad4ff');
+    game.says = ['GUYS LOOK WHAT', 'I FOUND!'];
+    game.saysTimer = 2.8;
+    Sfx.pickup();
+    Sfx.siren();
+    callPolice();
+    awardExtraLives();
+  }
+
   function awardExtraLives() {
     while (game.score >= game.nextExtraLife) {
       game.lives++;
@@ -621,9 +701,7 @@
       if (e.flee > 0) continue;                    // too busy fleeing to grab anyone
       var dx = e.x - game.cat.x, dy = e.y - game.cat.y;
       if (dx * dx + dy * dy < CATCH_DIST * CATCH_DIST) {
-        game.caughtBy = (e === game.photographer)
-          ? 'SNAPPED BY THE PHOTOGRAPHER!'
-          : game.theme.rival.caught;
+        game.caughtBy = e.caughtText;
         e.tauntTimer = 1.6;
         game.lives--;
         game.state = STATE.CAUGHT;
@@ -644,6 +722,10 @@
   }
 
   function updateFloaters(dt) {
+    if (game.saysTimer > 0) {
+      game.saysTimer -= dt;
+      if (game.saysTimer <= 0) game.says = null;
+    }
     for (var i = game.floaters.length - 1; i >= 0; i--) {
       var f = game.floaters[i];
       f.life -= dt;
@@ -696,6 +778,7 @@
         updateEnemies(dt);
         updateTaunts(dt);
         checkPickups();
+        checkSonos();
         if (game.state === STATE.PLAY) checkCapture();
         break;
 
@@ -770,6 +853,13 @@
   }
 
   function drawMushrooms(t) {
+    var s = game.sonos;
+    if (s && !s.taken) {
+      var bobbing = ((t * 2) % 2) < 1;
+      S.stamp(ctx, s.x * TILE + TILE / 2, s.y * TILE + TILE / 2, TILE, false, function (c) {
+        S.sonos(c, bobbing);
+      });
+    }
     game.mushrooms.forEach(function (m, i) {
       if (m.taken) return;
       var bob = ((t * 2 + i * 0.6) % 2) < 1;
@@ -809,8 +899,7 @@
       var wobble = e.flee > 0 ? Math.sin(e.anim / 3) * 2 : 0;
       shadow(e.x, e.y + wobble, 20);
       S.stamp(ctx, e.x, e.y + wobble, TILE + 4, e.dir.x < 0, function (c) {
-        if (e === game.photographer) S.photographer(c, ef, e.flee > 0);
-        else game.theme.rival.draw(c, ef, e.flee > 0);
+        e.draw(c, ef, e.flee > 0);
       });
     });
 
@@ -840,6 +929,7 @@
       }
     });
     if (game.complaining) drawSpeechBubble(game.cat.x, game.cat.y - 26, game.phrase);
+    else if (game.says) drawSpeechBubble(game.cat.x, game.cat.y - 26, game.says);
   }
 
   // A speech bubble above (x, y), one or more lines, with the tail pointing
@@ -909,6 +999,11 @@
       S.stamp(ctx, 236 + i * 20, top + 37, 20, false, function (c) {
         S.cat(c, 0, false);
       });
+    }
+
+    // the speaker, once it is in the basket and the law is involved
+    if (game.police) {
+      S.stamp(ctx, 330, top + 28, 22, false, function (c) { S.sonos(c, false); });
     }
 
     // mushrooms still out there

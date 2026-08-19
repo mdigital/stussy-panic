@@ -88,6 +88,36 @@
     jeans:     '#23232a',
     jeansDk:   '#141419',
     chuck:     '#f2efe6',
+
+    // the speaker somebody left out, and the policeman who wants it back
+    spkr:      '#2b2b32',
+    spkrLit:   '#3f3f4a',
+    spkrDark:  '#17171c',
+    grille:    '#54545f',
+    led:       '#6ad46f',
+    navy:      '#1f2a4a',
+    navyLit:   '#31406b',
+    navyDark:  '#131a30',
+    shirt:     '#8fb0dd',
+    checkLt:   '#f0f0f4',
+    badge:     '#e3c552',
+
+    // a clinker dinghy, a long way from the water
+    hull:      '#5f8a86',        // painted, so it does not vanish into the floor
+    hullLit:   '#7caba5',
+    hullDark:  '#3a5a57',
+    gunwale:   '#f2efe4',
+    thwart:    '#c8a267',
+    oar:       '#a87f45',
+
+    // the Majestic Centre
+    glass:     '#5f8fc4',
+    glassLit:  '#8fc0e8',
+    glassBand: '#dfe8f2',
+    terra:     '#8f5b47',
+    terraLit:  '#a8705a',
+    terraDark: '#5f3a2c',
+    crown:     '#cdbfa6',
     rockHair:  '#8d8a93',
     rockHairD: '#3b3740',
     specs:     '#20202a'
@@ -527,6 +557,134 @@
     r(ctx, 7, y + 9, 1, 1, C.sugar);
   }
 
+  /* ------------------------------------------------------- big decorations */
+
+  // A clinker rowboat, three tiles of it, parked in the lounge as though that
+  // were a normal thing to do with a boat.
+  function drawRowboat(ctx, px, py, size) {
+    var u = size / UNIT;          // three tiles wide, one tall
+    var W = 48;
+    function q(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(px + x * u, py + y * u, w * u, h * u); }
+
+    // How far the hull is inset on each row: widest amidships, pointed at the
+    // bow and stern.
+    var inset = [null, null, 13, 9, 6, 4, 3, 2, 2, 3, 4, 6, 9, 13];
+
+    q(6, 14, W - 12, 1, C.shadow);
+
+    for (var y = 2; y < inset.length; y++) {
+      var i = inset[y];
+      var body = (y >= 10) ? C.hullDark : C.hull;
+      q(i, y, W - i * 2, 1, body);
+      q(i, y, 1, 1, C.hullDark);              // dark edge down each side
+      q(W - i - 1, y, 1, 1, C.hullDark);
+    }
+    // the pale gunwale running right around the top
+    q(13, 2, W - 26, 1, C.gunwale);
+    q(9, 3, 4, 1, C.gunwale);  q(W - 13, 3, 4, 1, C.gunwale);
+    q(6, 4, 3, 1, C.gunwale);  q(W - 9, 4, 3, 1, C.gunwale);
+    q(4, 5, 2, 1, C.gunwale);  q(W - 6, 5, 2, 1, C.gunwale);
+    q(3, 6, 1, 2, C.gunwale);  q(W - 4, 6, 1, 2, C.gunwale);
+
+    // planking along the inside, and two thwarts to sit on
+    q(8, 6, W - 16, 1, C.hullLit);
+    q(16, 4, 3, 8, C.thwart);
+    q(29, 4, 3, 8, C.thwart);
+    q(16, 4, 3, 1, C.gunwale);
+    q(29, 4, 3, 1, C.gunwale);
+
+    // a pair of oars stowed fore and aft, blades hanging past the ends
+    q(6, 5, 30, 1, C.oar);
+    q(2, 4, 5, 3, C.oar);                     // blade over the bow
+    q(12, 10, 30, 1, C.oar);
+    q(41, 9, 5, 3, C.oar);                    // blade over the stern
+  }
+
+  // The Majestic Centre standing over the block: a banded blue-glass drum, the
+  // terracotta column beside it with its little round balconies, and the
+  // spiked crown on top.
+  function drawMajestic(ctx, px, py, size) {
+    var u = size / UNIT;          // four tiles wide, three tall
+    function q(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(px + x * u, py + y * u, w * u, h * u); }
+
+    var top = -2;                 // sits inside its block, crown over the street
+    // the glass drum
+    q(4, top + 6, 30, 40, C.glass);
+    q(6, top + 4, 26, 2, C.glass);
+    q(4, top + 6, 5, 40, C.glassLit);            // lit edge, so it reads round
+    q(30, top + 6, 4, 40, C.terraDark);
+    for (var i = 0; i < 10; i++) {                // the horizontal banding
+      q(4, top + 9 + i * 4, 30, 1, C.glassBand);
+    }
+    // the terracotta column
+    q(34, top, 12, 46, C.terra);
+    q(34, top, 4, 46, C.terraLit);
+    q(44, top, 2, 46, C.terraDark);
+    for (var j = 0; j < 6; j++) {                 // round balconies down its face
+      q(35, top + 10 + j * 6, 9, 2, C.terraDark);
+      q(36, top + 11 + j * 6, 7, 2, C.terra);
+    }
+    // the crown and its spikes
+    q(33, top - 7, 14, 7, C.crown);
+    q(33, top - 8, 14, 1, C.terraDark);
+    for (var k = 0; k < 8; k++) {
+      q(32 + k * 2, top - 13, 1, 6, C.crown);
+    }
+    q(39, top - 17, 1, 5, C.crown);
+    // a low podium tying it to the street
+    q(2, top + 44, 46, 2, C.concreteD);
+  }
+
+  /* --------------------------------- the speaker, and the law that follows */
+
+  // A single smart speaker, sitting where somebody left it.
+  function drawSonos(ctx, bob) {
+    var y = 2 + (bob ? 1 : 0);
+    r(ctx, 4, y + 1, 8, 12, C.spkrDark);
+    r(ctx, 4, y + 1, 8, 11, C.spkr);
+    r(ctx, 5, y + 1, 6, 1, C.spkrLit);        // top panel
+    r(ctx, 7, y + 1, 2, 1, C.grille);         // touch controls
+    for (var i = 0; i < 4; i++) {             // speaker grille
+      r(ctx, 5, y + 3 + i * 2, 6, 1, C.grille);
+    }
+    r(ctx, 5, y + 11, 1, 1, C.led);           // status light
+    r(ctx, 4, y + 12, 8, 1, C.spkrDark);
+  }
+
+  function drawPolice(ctx, frame, scared) {
+    var lx = frame === 0 ? 5 : 4, rx = frame === 0 ? 8 : 9;
+    // dark trousers and boots
+    r(ctx, lx, 11, 2, 4, C.navyDark);
+    r(ctx, rx, 11, 2, 4, C.navyDark);
+    r(ctx, lx - 1, 15, 4, 1, C.black);
+    r(ctx, rx, 15, 4, 1, C.black);
+
+    // tunic
+    r(ctx, 4, 6, 8, 6, C.navy);
+    r(ctx, 4, 6, 8, 1, C.navyLit);
+    r(ctx, 7, 6, 1, 6, C.navyDark);           // buttons down the front
+    r(ctx, 5, 7, 2, 2, C.shirt);              // collar
+    r(ctx, 9, 7, 2, 2, C.shirt);
+    r(ctx, 10, 9, 1, 1, C.badge);             // number on the shoulder
+    r(ctx, 12, 7, 2, 3, C.navy);              // sleeve
+    r(ctx, 12, 9, 2, 1, C.skin);              // hand
+
+    // head and peaked cap with the chequered band
+    r(ctx, 5, 2, 6, 5, C.skin);
+    r(ctx, 5, 6, 6, 1, C.skinDark);
+    r(ctx, 4, 1, 8, 2, C.navyDark);
+    for (var i = 0; i < 4; i++) {
+      r(ctx, 4 + i * 2, 2, 1, 1, C.checkLt);
+    }
+    r(ctx, 11, 2, 3, 1, C.navyDark);          // peak
+    r(ctx, 7, 0, 2, 1, C.badge);              // cap badge
+
+    r(ctx, 6, 4, 1, 1, C.black);
+    r(ctx, 9, 4, 1, 1, C.black);
+    if (scared) r(ctx, 7, 5, 2, 2, C.black);
+    else        r(ctx, 7, 5, 2, 1, C.skinDark);
+  }
+
   /* ------------------------------------------- Charteris Bay Man, the rival */
 
   function drawRocker(ctx, frame, scared) {
@@ -591,6 +749,10 @@
     building: drawBuilding,
     doughnut: drawDoughnut,
 
-    rocker: drawRocker
+    rocker: drawRocker,
+    sonos: drawSonos,
+    rowboat: drawRowboat,
+    majestic: drawMajestic,
+    police: drawPolice
   };
 })(window);

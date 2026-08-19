@@ -160,6 +160,8 @@
    *   #  solid (nobody through it)     n  low enough for a person to step over
    *   .  open ground                   c  the thing you are collecting
    *   S  Stussy   P  photographer      R  the rival chaser
+   *   T  staircase        B  rowboat (decoration, walk right past it)
+   *   M  the Majestic Centre, a landmark built into a block
    *
    * HAWKER ST MANSION — a two-storey Wellington villa of the Mt Victoria sort:
    * bedrooms off an upstairs hallway, a staircase down the middle, lounge and
@@ -176,7 +178,7 @@
     '#..nn.#..c..#..nn.#..c..#',
     '#.......................#',
     '############T############',
-    '#..........#.#..........#',
+    '#.B........#.#..........#',
     '#.nn....c.......c....nn.#',
     '#..........#.#..........#',
     '#....nn....#.#....nn....#',
@@ -193,7 +195,7 @@
   var STRAIT = [
     '#########################',
     '#..c................c..P#',
-    '#.######.#######.######.#',
+    '#.######.#M#####.######.#',
     '#.######n#######n######.#',
     '#.######.#######.######n#',
     '#...........n...........#',
@@ -238,6 +240,8 @@
           case 'P': grid[y][x] = FLOOR; photo = { x: x, y: y }; break;
           case 'R': grid[y][x] = FLOOR; rival = { x: x, y: y }; break;
           case 'T': grid[y][x] = FLOOR; decor.push({ x: x, y: y, kind: 'stairs' }); break;
+          case 'B': grid[y][x] = FLOOR; decor.push({ x: x, y: y, kind: 'rowboat' }); break;
+          case 'M': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'majestic' }); break;
           default:  grid[y][x] = FLOOR;
         }
       }

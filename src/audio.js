@@ -88,6 +88,12 @@
 
     empty: function () { blip(140, 0.12, 'square', 0.25, 90); },
 
+    // Two rising whoops, for the moment a policeman takes an interest.
+    siren: function () {
+      blip(520, 0.22, 'square', 0.32, 880);
+      global.setTimeout(function () { blip(520, 0.26, 'square', 0.32, 920); }, 240);
+    },
+
     // Two clipped syllables when one of them calls out — kept quiet so a
     // chatty pair never drowns out the game.
     taunt: function (bright) {

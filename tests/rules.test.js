@@ -191,6 +191,28 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(themed[2].low > 0 && themed[2].solid > 0 && themed[3].low > 0 && themed[3].solid > 0,
      'both have furniture/planters to step over and walls/buildings that stop everyone');
 
+  // the two set pieces: a rowboat parked in the villa lounge, and the Majestic
+  // Centre standing in a block on Victoria Street
+  const decor = await p.evaluate(() => {
+    const out = {};
+    [2, 3].forEach(lvl => {
+      const d = Maze.generate(lvl, 0);
+      out[lvl] = (d.decor || []).map(dec => ({
+        kind: dec.kind,
+        tile: d.grid[dec.y][dec.x],
+        x: dec.x, y: dec.y
+      }));
+    });
+    return out;
+  });
+  const boat = decor[2].find(d => d.kind === 'rowboat');
+  const tower = decor[3].find(d => d.kind === 'majestic');
+  ok(boat && boat.tile === 0,
+     'a rowboat sits in the villa, decoration only — you walk straight past it');
+  ok(decor[2].some(d => d.kind === 'stairs'), 'the staircase is still there too');
+  ok(tower && tower.tile === 2,
+     'the Majestic Centre stands in a solid block on the street level');
+
   // what each level looks like and who is chasing on it
   const look = await p.evaluate(async () => {
     const out = {};

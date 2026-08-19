@@ -63,12 +63,23 @@ four bedrooms off an upstairs hallway, a staircase down the middle of the house,
 and a lounge and kitchen either side of the downstairs hall. The beds and sofas
 are what the people step over. The rival here is Charteris Bay Man — an aging
 rocker in glasses, denim jacket, black jeans and Chuck Taylors, whose entire
-contribution is "FUCK OFF STUSSY".
+contribution is "FUCK OFF STUSSY". There is a clinker rowboat parked in the
+downstairs lounge, as you would expect.
 
 **Strait of Stussy** is the Victoria Street block: long straight streets, a
 grid of lanes and the angled corner where Victoria meets Bond. Planter boxes and
 low walls line the footpaths, and the people stride straight over them while
-Stussy goes the long way round.
+Stussy goes the long way round. The Majestic Centre stands over the block at the
+top of the street — banded glass drum, terracotta column, spiked crown.
+
+### The speaker
+
+About half the time, someone has left a single smart speaker out on the level.
+Picking it up is worth 250 and Stussy announces it — *guys look what I found!* —
+at which point a policeman turns up at the far end and joins the chase, telling
+her it isn't hers. He steps over hedges like the rest of them and runs from a
+complaint like the rest of them, and he is gone again next level. The speaker
+shows in the status bar while he is after you.
 
 ## Steering
 
@@ -95,6 +106,8 @@ turning her at some junction you have long since forgotten about.
   yowls beat one long one.
 - **Getting caught** costs a Stussy. You start with three, plus one more every
   5,000 points. An enemy that is currently fleeing cannot catch you.
+- **The speaker** appears on about half of levels, scores 250, and brings a
+  third chaser out for the rest of that level.
 - **Scoring:** 100 a mushroom, 25 each time you send someone running, and
   500 + 100 × level for clearing the garden.
 - **They talk.** Get within seven tiles and they start on you — Maryellen wants
@@ -150,6 +163,7 @@ The tests drive the real game in headless Chromium.
 npm install playwright-core          # plus a Chromium build
 CHROMIUM=/path/to/chrome node tests/rules.test.js        # 26 rule checks
 CHROMIUM=/path/to/chrome node tests/steer.test.js        # 5 steering checks
+CHROMIUM=/path/to/chrome node tests/sonos.test.js        # 9 speaker checks
 CHROMIUM=/path/to/chrome node tests/mobile.test.js       # 11 touch checks
 CHROMIUM=/path/to/chrome node tests/music.test.js        # 6 soundtrack checks
 CHROMIUM=/path/to/chrome node tests/autoplay.test.js 90  # bot plays for 90s
@@ -176,6 +190,11 @@ d-pad corner swallowing them.
 one tap carries her across the garden with nothing held, that she parks square
 against a wall, that tapping back turns her around, and that a turn asked for
 too early lapses instead of firing later.
+
+`sonos.test.js` covers the speaker: that it turns up on roughly half of levels
+(measured over 400 loads), that taking it scores and sets Stussy off, that a
+policeman appears as a third chaser across the level rather than on top of her,
+that he closes in, that yelling scares him too, and that he is gone next level.
 
 `music.test.js` taps the music bus with an analyser, records a loudness envelope
 and autocorrelates it: the track has to be audible and to pulse on the beat at
