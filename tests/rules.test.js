@@ -80,6 +80,36 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(scared.flee > 0 && scared.gained === 25, 'a nearby chaser turns and runs, and scores 25 ' + JSON.stringify(scared));
   ok(scared.maryFlee <= 0, 'someone out of earshot carries on regardless');
 
+  // ---- 4b: the two of them call out when they close in ---------------------
+  const taunts = await p.evaluate(async () => {
+    const g = window.MushroomBother.state;
+    g.grace = 10;                       // keep Stussy safe while they crowd in
+    g.photographer.flee = 0; g.landlord.flee = 0;
+    g.photographer.tauntTimer = 0; g.landlord.tauntTimer = 0;
+    g.photographer.tauntCooldown = 0; g.landlord.tauntCooldown = 0;
+    g.photographer.x = g.cat.x + 70; g.photographer.y = g.cat.y;
+    g.landlord.x = g.cat.x - 70; g.landlord.y = g.cat.y;
+    await new Promise(r => setTimeout(r, 300));
+    return {
+      photoTimer: g.photographer.tauntTimer,
+      maryTimer: g.landlord.tauntTimer,
+      photoLines: g.photographer.lines.join(' '),
+      maryLines: g.landlord.lines.join(' ')
+    };
+  });
+  ok(taunts.photoTimer > 0 && taunts.maryTimer > 0, 'both start on Stussy once they are close');
+  ok(taunts.maryLines === "WHERE'S YOUR RENT!?", 'Maryellen asks where the rent is — "' + taunts.maryLines + '"');
+  ok(taunts.photoLines === 'BAD REVIEW ON TRADEME HEY!?!',
+     'the photographer threatens a Trademe review — "' + taunts.photoLines + '"');
+
+  const hushed = await p.evaluate(async () => {
+    const g = window.MushroomBother.state;
+    g.photographer.tauntTimer = 2; g.photographer.flee = 2;
+    await new Promise(r => setTimeout(r, 200));
+    return g.photographer.tauntTimer;
+  });
+  ok(hushed <= 0, 'whoever is running away stops talking');
+
   // ---- 5: capture, life loss, respawn --------------------------------------
   const cap = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
@@ -87,13 +117,15 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     const lives = g.lives;
     g.photographer.x = g.cat.x; g.photographer.y = g.cat.y;
     await new Promise(r => setTimeout(r, 200));
-    const caught = { state: g.state, lives: g.lives, lost: lives - g.lives };
+    const caught = { state: g.state, lives: g.lives, lost: lives - g.lives,
+                     catcherTaunt: g.photographer.tauntTimer };
     await new Promise(r => setTimeout(r, 2200));
     caught.after = g.state;
     caught.home = Math.abs(g.cat.x - (g.cat.home.x * 32 + 16)) < 1;
     return caught;
   });
   ok(cap.state === 'caught' && cap.lost === 1, 'being caught costs a life');
+  ok(cap.catcherTaunt > 0, 'whoever catches Stussy gets the last word');
   ok(cap.after === 'play' && cap.home, 'the cat respawns at its starting corner');
 
   // ---- 6: game over and restart --------------------------------------------

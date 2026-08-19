@@ -159,7 +159,7 @@
     if (!scared && frame === 0) r(ctx, 12, 3, 2, 1, C.flash);   // flashbulb pop
   }
 
-  /* ------------------------------------------------- Mary Ellen, the landlord */
+  /* -------------------------------------------------- Maryellen, the landlord */
 
   function drawLandlord(ctx, frame, scared) {
     // shoes

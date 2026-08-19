@@ -71,6 +71,15 @@
 
     empty: function () { blip(140, 0.12, 'square', 0.25, 90); },
 
+    // Two clipped syllables when one of them calls out — kept quiet so a
+    // chatty pair never drowns out the game.
+    taunt: function (bright) {
+      blip(bright ? 520 : 300, 0.07, 'square', 0.16);
+      global.setTimeout(function () {
+        blip(bright ? 400 : 232, 0.09, 'square', 0.14);
+      }, 85);
+    },
+
     // A held, warbling yowl for as long as the cat keeps complaining.
     complaintStart: function () {
       if (muted || complaintOsc || !ensure()) return;

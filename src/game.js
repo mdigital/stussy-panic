@@ -1,7 +1,7 @@
 /* game.js — Mushroom Bother.
  *
  * Stussy the cat is collecting nine mushrooms out of a hedge maze. A photographer
- * wants the shot and Mary Ellen the landlord wants a word. Both of them stride
+ * wants the shot and Maryellen the landlord wants a word. Both of them stride
  * straight over the hedges; Stussy has to go the long way round. Stussy's only
  * defence is to complain, loudly, for as long as the complaint meter holds out.
  */
@@ -38,6 +38,17 @@
     'MEOW!', 'MRRRAOW!', 'SHOO!', 'HISSS!', 'NOT NOW!',
     'MY MUSHROOMS!', 'GO AWAY!', 'YEEOWL!'
   ];
+
+  // What the two of them shout when they close in on Stussy. Split into lines
+  // so a long one does not sprawl across half the garden.
+  var TAUNTS = {
+    photographer: ['BAD REVIEW ON', 'TRADEME HEY!?!'],
+    landlord: ["WHERE'S YOUR RENT!?"]
+  };
+
+  var TAUNT_RADIUS = 7 * TILE;   // how close they get before they start on you
+  var TAUNT_SHOW = 2.2;          // seconds a line stays up
+  var TAUNT_GAP = 3.4;           // quiet seconds before the same one pipes up again
 
   /* ------------------------------------------------------------------ input */
 
@@ -190,7 +201,10 @@
       stepsOverHedges: !!stepsOverHedges,
       flee: 0,
       prev: { x: tile.x, y: tile.y },
-      anim: 0
+      anim: 0,
+      lines: null,
+      tauntTimer: 0,
+      tauntCooldown: 1.5
     };
   }
 
@@ -231,6 +245,8 @@
     var marySpeed = Math.min(140, 96 + (level - 1) * 5);
     game.photographer = makeEntity(data.spawns.photographer, photoSpeed, true);
     game.landlord = makeEntity(data.spawns.landlord, marySpeed, true);
+    game.photographer.lines = TAUNTS.photographer;
+    game.landlord.lines = TAUNTS.landlord;
     game.enemies = [game.photographer, game.landlord];
 
     game.complaint = COMPLAINT_MAX;
@@ -250,6 +266,8 @@
       e.dir = { x: 1, y: 0 };
       e.want = null;
       e.flee = 0;
+      e.tauntTimer = 0;
+      e.tauntCooldown = 1.5;
     });
     game.grace = 2.0;
     game.complaint = Math.max(game.complaint, COMPLAINT_MAX * 0.5);
@@ -409,7 +427,7 @@
     // The photographer goes straight for the cat.
     updateEnemy(game.photographer, dt, fleeField, fleeField);
 
-    // Mary Ellen tries to cut the cat off, aiming a few tiles down its path.
+    // Maryellen tries to cut Stussy off, aiming a few tiles down the path.
     var ax = catTile.x + game.cat.dir.x * 4;
     var ay = catTile.y + game.cat.dir.y * 4;
     ax = Math.max(0, Math.min(COLS - 1, ax));
@@ -417,6 +435,23 @@
     if (tileAt(ax, ay) === TREE) { ax = catTile.x; ay = catTile.y; }
     var ambushField = humanField(ax, ay);
     updateEnemy(game.landlord, dt, ambushField, fleeField);
+  }
+
+  // The chasers call out whenever they get near Stussy — and again at the
+  // moment they catch her. Someone running away has nothing to say.
+  function updateTaunts(dt) {
+    game.enemies.forEach(function (e) {
+      if (e.tauntTimer > 0) e.tauntTimer -= dt;
+      if (e.tauntCooldown > 0) e.tauntCooldown -= dt;
+      if (e.flee > 0) { e.tauntTimer = 0; return; }
+
+      var dx = e.x - game.cat.x, dy = e.y - game.cat.y;
+      if (dx * dx + dy * dy < TAUNT_RADIUS * TAUNT_RADIUS && e.tauntCooldown <= 0) {
+        e.tauntTimer = TAUNT_SHOW;
+        e.tauntCooldown = TAUNT_SHOW + TAUNT_GAP + Math.random() * 2;
+        Sfx.taunt(e === game.photographer);
+      }
+    });
   }
 
   /* ------------------------------------------------------------- complaint */
@@ -510,7 +545,8 @@
       if (e.flee > 0) continue;                    // too busy fleeing to grab anyone
       var dx = e.x - game.cat.x, dy = e.y - game.cat.y;
       if (dx * dx + dy * dy < CATCH_DIST * CATCH_DIST) {
-        game.caughtBy = (e === game.photographer) ? 'SNAPPED BY THE PHOTOGRAPHER!' : 'CAUGHT BY MARY ELLEN!';
+        game.caughtBy = (e === game.photographer) ? 'SNAPPED BY THE PHOTOGRAPHER!' : 'CAUGHT BY MARYELLEN!';
+        e.tauntTimer = 1.6;
         game.lives--;
         game.state = STATE.CAUGHT;
         game.timer = 1.6;
@@ -572,6 +608,7 @@
         updateCat(dt);
         updateComplaint(dt);
         updateEnemies(dt);
+        updateTaunts(dt);
         checkPickups();
         if (game.state === STATE.PLAY) checkCapture();
         break;
@@ -695,24 +732,45 @@
       ctx.strokeText('!', e.x, e.y - 20);
       ctx.fillText('!', e.x, e.y - 20);
     });
+    game.enemies.forEach(function (e) {
+      if (e.tauntTimer > 0 && e.flee <= 0 && e.lines) {
+        drawSpeechBubble(e.x, e.y - 26, e.lines);
+      }
+    });
     if (game.complaining) drawSpeechBubble(game.cat.x, game.cat.y - 26, game.phrase);
   }
 
+  // A speech bubble above (x, y), one or more lines, with the tail pointing
+  // back down at whoever is talking.
   function drawSpeechBubble(x, y, text) {
+    var lines = (typeof text === 'string') ? [text] : text;
     ctx.font = 'bold 12px "Courier New", monospace';
     ctx.textAlign = 'center';
-    var w = ctx.measureText(text).width + 14;
-    var h = 20;
+
+    var w = 0;
+    for (var i = 0; i < lines.length; i++) {
+      w = Math.max(w, ctx.measureText(lines[i]).width);
+    }
+    w += 14;
+    var lineH = 15;
+    var h = 6 + lines.length * lineH;
     var bx = Math.max(4, Math.min(PLAY_W - w - 4, x - w / 2));
     var by = Math.max(4, y - h);
+
     ctx.fillStyle = '#fffbe6';
     ctx.fillRect(bx, by, w, h);
+    // tail, kept inside the bubble's own width even when it has been nudged
+    // away from the screen edge
+    var tail = Math.max(bx + 4, Math.min(bx + w - 10, x - 3));
     ctx.fillStyle = '#2b2540';
-    ctx.fillRect(bx + 2, by + h, 6, 5);
+    ctx.fillRect(tail, by + h, 6, 5);
     ctx.fillStyle = '#fffbe6';
-    ctx.fillRect(bx + 3, by + h, 4, 3);
+    ctx.fillRect(tail + 1, by + h, 4, 3);
+
     ctx.fillStyle = '#2b2540';
-    ctx.fillText(text, bx + w / 2, by + 14);
+    for (var j = 0; j < lines.length; j++) {
+      ctx.fillText(lines[j], bx + w / 2, by + 14 + j * lineH);
+    }
   }
 
   function drawFloaters() {
@@ -881,7 +939,7 @@
     ctx.fillStyle = '#b8b0ff';
     ctx.fillText('STUSSY', 190, 268);
     ctx.fillText('THE PHOTOGRAPHER', 400, 268);
-    ctx.fillText('MARY ELLEN, YOUR LANDLORD', 610, 268);
+    ctx.fillText('MARYELLEN, YOUR LANDLORD', 610, 268);
 
     var lines = touch.enabled ? [
       'D-PAD, BOTTOM LEFT  ..... walk Stussy around the maze',

@@ -6,7 +6,7 @@ borrowed mower.
 
 Nine mushrooms are scattered through a garden of hedges and trees. Collect all
 nine and the level is yours. Two people would rather you didn't: a photographer
-after his shot, and Mary Ellen, your landlord, who would like a word about the
+after his shot, and Maryellen, your landlord, who would like a word about the
 rent.
 
 **The catch:** the people can step over the hedges. Stussy cannot. They come at
@@ -51,7 +51,7 @@ the whole game to fit the screen — landscape gives you the most room.
 - **Nine mushrooms per level.** Clear them all to move on. Every level is a
   fresh maze, generated from the level number, so level 4 is always the same
   level 4.
-- **Hedges** are low. The photographer and Mary Ellen step straight over them;
+- **Hedges** are low. The photographer and Maryellen step straight over them;
   Stussy has to go around.
 - **Trees** are tall. Nobody gets through a tree, cat or human.
 - **Complaining** empties the meter at 30 units a second out of 100. Let go and
@@ -62,8 +62,12 @@ the whole game to fit the screen — landscape gives you the most room.
   5,000 points. An enemy that is currently fleeing cannot catch you.
 - **Scoring:** 100 a mushroom, 25 each time you send someone running, and
   500 + 100 × level for clearing the garden.
+- **They talk.** Get within seven tiles and they start on you — Maryellen wants
+  to know where your rent is, the photographer threatens a bad review on
+  Trademe — and whoever catches Stussy gets the last word. Scare one off and it
+  shuts up while it runs.
 - **The two chasers behave differently.** The photographer heads straight for
-  Stussy. Mary Ellen aims a few tiles ahead of where Stussy is going, trying to
+  Stussy. Maryellen aims a few tiles ahead of where Stussy is going, trying to
   cut them off — so doubling back can beat her.
 
 Later levels grow more hedges and the chasers get quicker.
