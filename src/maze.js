@@ -163,6 +163,7 @@
    *   T  staircase        B  rowboat (decoration, walk right past it)
    *   M  the Majestic Centre, a landmark built into a block
    *   W  the sea, painted right across the top of the beach
+   *   F  the shop fascia, painted right across the top of the supermarket
    *
    * HAWKER ST MANSION — a two-storey Wellington villa of the Mt Victoria sort:
    * bedrooms off an upstairs hallway, a staircase down the middle, lounge and
@@ -236,8 +237,32 @@
     '#########################'
   ];
 
-  var HAND_DRAWN = { 2: MANSION, 3: STRAIT, 4: BEACH };
-  var THEMES = { 2: 'mansion', 3: 'strait', 4: 'beach' };
+  /* THE SUPERMARKET — gondola runs with aisles between them, a cross aisle
+   * through the middle and the checkouts along the front. The trolleys people
+   * have left about are what the staff step over.
+   */
+  var SUPERMARKET = [
+    'F########################',
+    '#########################',
+    '#....n.......n.......n.P#',
+    '#.c##..##..##..##..##...#',
+    '#..##..##.n##.c##..##...#',
+    '#.n##..##..##..##..##.c.#',
+    '#..##.c##..##..##.n##...#',
+    '#..##..##..##..##..##...#',
+    '#........n.......n..c...#',
+    '#..##..##..##c.##..##...#',
+    '#..##..##..##..##..##.n.#',
+    '#..##.n##..##..##.c##...#',
+    '#n.##..##.c##.n##..##...#',
+    '#..##..##..##..##..##...#',
+    '#.....n..c.....n.....n..#',
+    '#S###..###..###..###...R#',
+    '#########################'
+  ];
+
+  var HAND_DRAWN = { 2: MANSION, 3: STRAIT, 4: BEACH, 5: SUPERMARKET };
+  var THEMES = { 2: 'mansion', 3: 'strait', 4: 'beach', 5: 'supermarket' };
 
   // Which look a level wears — the generated ones are all gardens.
   function themeFor(level) {
@@ -267,6 +292,7 @@
           case 'B': grid[y][x] = FLOOR; decor.push({ x: x, y: y, kind: 'rowboat' }); break;
           case 'M': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'majestic' }); break;
           case 'W': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'sea' }); break;
+          case 'F': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'fascia' }); break;
           default:  grid[y][x] = FLOOR;
         }
       }

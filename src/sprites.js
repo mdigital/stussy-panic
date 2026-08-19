@@ -149,6 +149,32 @@
     labelLit:  '#5a4487',
     gold:      '#e8b93c',
 
+    // the supermarket
+    lino:      '#dcdcd6',
+    linoAlt:   '#d2d2cb',
+    linoLine:  '#bcbcb4',
+    shelf:     '#b9bdc4',
+    shelfLit:  '#d6dae0',
+    shelfDark: '#7d838c',
+    stock1:    '#c0392b',
+    stock2:    '#2e7d9a',
+    stock3:    '#e0a52c',
+    stock4:    '#4c8f3f',
+    trolley:   '#aeb4bd',
+    trolleyLit:'#e2e6ec',
+    trolleyDk: '#6d737c',
+    salmon:    '#f08a5d',
+    salmonLit: '#ffb08a',
+    salmonDk:  '#c05f38',
+    salmonSkin:'#8a9aa6',
+    pizzaBase: '#e0b26a',
+    pizzaCrust:'#b98741',
+    cheese2:   '#f3cf62',
+    pepperoni: '#c0392b',
+    basil:     '#3f7a43',
+    pnsYellow: '#ffdd00',
+    pnsBlack:  '#111111',
+
     anchor:    '#4a4d57',
     anchorLit: '#767a86',
     rope:      '#c9b07a',
@@ -600,6 +626,172 @@
     r(ctx, 7, y + 9, 1, 1, C.sugar);
   }
 
+  /* ------------------------------------------------------- the supermarket */
+
+  function drawLino(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = ((tx + ty) & 1) ? C.lino : C.linoAlt;
+    ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = C.linoLine;                     // the grout between tiles
+    ctx.fillRect(px, py, size, u);
+    ctx.fillRect(px, py, u, size);
+    var n = tileNoise(tx, ty);
+    if (n > 0.85) {                                 // a scuff off a trolley wheel
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      ctx.fillRect(px + 4 * u, py + 9 * u, 7 * u, u);
+    }
+  }
+
+  // A trolley somebody has left in the aisle: low enough to step over if you
+  // are a person, squarely in the way if you are a cat.
+  function drawTrolley(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    drawLino(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px + u, py + 13 * u, 14 * u, 2 * u);
+
+    ctx.fillStyle = C.trolleyDk;                    // basket, tipped back a little
+    ctx.fillRect(px + u, py + 4 * u, 13 * u, 9 * u);
+    ctx.fillStyle = C.trolley;
+    ctx.fillRect(px + 2 * u, py + 5 * u, 11 * u, 7 * u);
+    ctx.fillStyle = C.trolleyLit;
+    ctx.fillRect(px + u, py + 4 * u, 13 * u, 2 * u);   // flat rim, the steppable bit
+    ctx.fillStyle = C.trolleyDk;                    // the wire
+    for (var i = 0; i < 4; i++) ctx.fillRect(px + (3 + i * 3) * u, py + 6 * u, u, 6 * u);
+    ctx.fillRect(px + 2 * u, py + 9 * u, 11 * u, u);
+    ctx.fillStyle = C.trolleyLit;                   // handle
+    ctx.fillRect(px + 13 * u, py + 3 * u, 2 * u, 6 * u);
+    ctx.fillStyle = C.trolleyDk;                    // castors
+    ctx.fillRect(px + 2 * u, py + 13 * u, 3 * u, 2 * u);
+    ctx.fillRect(px + 10 * u, py + 13 * u, 3 * u, 2 * u);
+  }
+
+  // A gondola run: shelves of stock, and nobody gets through it.
+  function drawShelf(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = C.shelfDark;
+    ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = C.shelf;
+    ctx.fillRect(px, py + u, size, 14 * u);
+    ctx.fillStyle = C.shelfLit;
+    ctx.fillRect(px, py, size, u);
+
+    var stock = [C.stock1, C.stock2, C.stock3, C.stock4];
+    var n = tileNoise(tx, ty);
+    for (var row = 0; row < 3; row++) {
+      var y = 2 + row * 5;
+      for (var i = 0; i < 4; i++) {
+        var pick = Math.floor((n * (row + 2) * (i + 3) * 53) % 4);
+        ctx.fillStyle = stock[pick];
+        ctx.fillRect(px + (1 + i * 4) * u, py + y * u, 3 * u, 3 * u);
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        ctx.fillRect(px + (1 + i * 4) * u, py + y * u, 3 * u, u);
+      }
+      ctx.fillStyle = C.shelfDark;                  // the shelf edge below them
+      ctx.fillRect(px, py + (y + 3) * u, size, u);
+    }
+  }
+
+  // A salmon fillet off the chiller: thick at one end, tapering to the tail,
+  // with the pale lines through the flesh and the skin down one edge.
+  function drawSalmon(ctx, bob) {
+    var y = 4 + (bob ? 1 : 0);
+    var rows = [[4, 8], [3, 11], [2, 13], [2, 13], [3, 11], [4, 8]];
+    for (var i = 0; i < rows.length; i++) {
+      r(ctx, rows[i][0], y + i + 1, rows[i][1], 1, C.salmon);
+    }
+    r(ctx, 4, y + 1, 7, 1, C.salmonLit);           // light along the top
+    r(ctx, 4, y + 3, 8, 1, C.salmonLit);           // the flesh lines
+    r(ctx, 3, y + 5, 8, 1, C.salmonLit);
+    r(ctx, 3, y + 6, 11, 1, C.salmonDk);           // and the shadow under it
+    r(ctx, 2, y + 3, 1, 2, C.salmonSkin);          // skin at the thick end
+    r(ctx, 2, y + 4, 1, 1, C.salmonDk);
+    r(ctx, 13, y + 3, 2, 2, C.salmon);             // the tail end
+    r(ctx, 14, y + 4, 1, 1, C.salmonDk);
+  }
+
+  // A pizza, straight off the shelf.
+  function drawPizza(ctx, bob) {
+    var y = 3 + (bob ? 1 : 0);
+    var rows = [[5, 6], [3, 10], [2, 12], [2, 12], [2, 12], [3, 10], [5, 6]];
+    for (var i = 0; i < rows.length; i++) {
+      r(ctx, rows[i][0], y + i + 1, rows[i][1], 1, C.pizzaCrust);
+    }
+    for (var j = 1; j < rows.length - 1; j++) {
+      r(ctx, rows[j][0] + 1, y + j + 1, rows[j][1] - 2, 1, C.cheese2);
+    }
+    r(ctx, 5, y + 3, 2, 2, C.pepperoni);
+    r(ctx, 9, y + 2, 2, 2, C.pepperoni);
+    r(ctx, 8, y + 5, 2, 2, C.pepperoni);
+    r(ctx, 5, y + 6, 1, 1, C.pepperoni);
+    r(ctx, 11, y + 4, 1, 1, C.basil);
+    r(ctx, 6, y + 5, 1, 1, C.basil);
+  }
+
+  // The shop fascia, right across the top of the store: yellow, black, and
+  // lettered in this game's own alphabet rather than traced off the sign.
+  function drawFascia(ctx, px, py, size) {
+    var u = size / UNIT;
+    var W = 25 * UNIT;
+    function q(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(px + x * u, py + y * u, w * u, h * u); }
+
+    q(0, 0, W, 32, C.pnsBlack);
+    q(0, 3, W, 24, C.pnsYellow);
+
+    // slanted black bars at each end, stepped the way the hardware would have
+    for (var i = 0; i < 5; i++) {
+      var off = i * 26;
+      for (var st = 0; st < 24; st += 2) {
+        q(10 + off + st * 0.5, 3 + st, 9, 2, C.pnsBlack);
+        q(W - 19 - off - st * 0.5, 3 + st, 9, 2, C.pnsBlack);
+      }
+    }
+
+    // the name, on a black plate in the middle
+    q(W / 2 - 104, 4, 208, 22, C.pnsBlack);
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold ' + Math.round(size * 0.6) + 'px "Courier New", monospace';
+    ctx.fillStyle = C.pnsYellow;
+    ctx.fillText("PAK'nSAVE", px + (W / 2) * u, py + 15 * u);
+    ctx.restore();
+  }
+
+  /* --------------------------------- Maryellen, on shift at the supermarket */
+
+  function drawStaff(ctx, frame, scared) {
+    var lx = frame === 0 ? 5 : 4, rx = frame === 0 ? 8 : 9;
+
+    // black trousers with the yellow stripe down the leg
+    r(ctx, lx, 11, 3, 4, C.pnsBlack);
+    r(ctx, rx, 11, 3, 4, C.pnsBlack);
+    r(ctx, lx, 11, 1, 4, C.pnsYellow);
+    r(ctx, rx + 2, 11, 1, 4, C.pnsYellow);
+    r(ctx, lx - 1, 15, 4, 1, C.black);
+    r(ctx, rx, 15, 4, 1, C.black);
+
+    // black shirt with a small yellow logo on the chest
+    r(ctx, 4, 6, 8, 6, C.pnsBlack);
+    r(ctx, 4, 6, 8, 1, '#2b2b2b');
+    r(ctx, 5, 8, 3, 2, C.pnsYellow);
+    r(ctx, 6, 8, 1, 2, C.pnsBlack);
+    r(ctx, 3, 7, 2, 4, C.pnsBlack);              // sleeves
+    r(ctx, 12, 7, 2, 4, C.pnsBlack);
+    r(ctx, 3, 10, 2, 1, C.skin);
+    r(ctx, 12, 10, 2, 1, C.skin);
+
+    // head and the same bun she has always had
+    r(ctx, 5, 2, 6, 4, C.skin);
+    r(ctx, 5, 5, 6, 1, C.skinDark);
+    r(ctx, 4, 1, 8, 2, C.hair);
+    r(ctx, 3, 2, 2, 2, C.hairDark);
+    r(ctx, 6, 3, 1, 1, C.black);
+    r(ctx, 9, 3, 1, 1, C.black);
+    if (scared) r(ctx, 7, 4, 2, 2, C.black);
+    else        r(ctx, 7, 4, 3, 1, C.dressDark);
+  }
+
   /* ------------------------------------------------ Willie, down the beach */
 
   // Pear-shaped, light blue speedos, sunglasses, not a care in the world.
@@ -1029,6 +1221,13 @@
     rocker: drawRocker,
 
     willie: drawWillie,
+    lino: drawLino,
+    trolley: drawTrolley,
+    shelf: drawShelf,
+    salmon: drawSalmon,
+    pizza: drawPizza,
+    fascia: drawFascia,
+    staff: drawStaff,
     sand: drawSand,
     driftwood: drawDriftwood,
     rock: drawRock,

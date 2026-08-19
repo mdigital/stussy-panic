@@ -95,6 +95,21 @@
       // Down here the law has other priorities than a cat with a jar.
       bonus: { draw: S.tumjal, chases: 'rival' }
     },
+    supermarket: {
+      name: 'THE SUPERMARKET',
+      subtitle: 'nine salmon fillets — mind the trolleys',
+      cleared: 'CHECKOUT CLEARED!',
+      floor: S.lino, low: S.trolley, solid: S.shelf,
+      solidOverhead: false,
+      pickup: S.salmon,
+      decor: { fascia: S.fascia },
+      rival: {
+        draw: S.staff,
+        sayings: [['CLUB+ CARD?'], ['SECURITY TO', 'AISLE 3']],
+        caught: 'SECURITY TO AISLE 3'
+      },
+      bonus: { draw: S.pizza, chases: 'cat' }
+    },
     strait: {
       name: 'STRAIT OF STUSSY',
       subtitle: 'nine sugared doughnuts — mind the planters',

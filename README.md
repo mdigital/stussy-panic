@@ -62,10 +62,11 @@ Most levels are a freshly generated garden, but two are drawn by hand.
 
 | # | Level | Collect | Chasers |
 | --- | --- | --- | --- |
-| 1, 5+ | the garden | mushrooms | the photographer and Maryellen |
+| 1, 6+ | the garden | mushrooms | the photographer and Maryellen |
 | 2 | **Hawker St Mansion** | cheese and crackers | the photographer and **Charteris Bay Man** |
 | 3 | **Strait of Stussy** | sugared doughnuts | the photographer and Maryellen |
 | 4 | **The Beach** | life preserver rings | the photographer and **Willie** |
+| 5 | **The Supermarket** | salmon fillets | the photographer and Maryellen, on shift |
 
 **Hawker St Mansion** is a two-storey Wellington villa of the Mt Victoria sort:
 four bedrooms off an upstairs hallway, a staircase down the middle of the house,
@@ -88,6 +89,14 @@ pear-shaped man in light blue speedos and sunglasses who greets Stussy, when he
 catches her, with "HELLO DARLING". On the way over he will let you know it is
 windy, that it's raining, or that he is getting a beard trim tomorrow. His Pit
 Vipers stay on throughout.
+
+**The Supermarket** is gondola runs with aisles between them, a cross aisle
+through the middle and the checkouts along the front, under the yellow and black
+shop fascia. The trolleys people have left about are what the staff step over.
+Maryellen is on shift here in the black shirt with the yellow logo and the
+yellow stripe down her leg, and would like to know whether you have a Club+
+card — failing that, security to aisle 3. The bonus item on this level is a
+pizza.
 
 ### The bonus item
 
@@ -141,7 +150,8 @@ turning her at some junction you have long since forgotten about.
 - **They talk.** Get within seven tiles and they start on you — Maryellen wants
   to know where your rent is, the photographer threatens a bad review on
   Trademe or wonders about her white balance, Charteris Bay Man just tells Stussy
-  to get lost, Willie has four observations about the weather and his grooming — and whoever catches Stussy
+  to get lost, Willie has four observations about the weather and his grooming,
+  Maryellen on shift wants to see a Club+ card — and whoever catches Stussy
   gets the last word. Scare one off and it shuts up while it runs.
 - **The two chasers behave differently.** The photographer heads straight for
   Stussy. Maryellen aims a few tiles ahead of where Stussy is going, trying to

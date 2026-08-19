@@ -196,7 +196,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 8: the two hand-drawn levels ----------------------------------------
   const themed = await p.evaluate(() => {
     const out = {};
-    [1, 2, 3, 4, 5].forEach(lvl => {
+    [1, 2, 3, 4, 5, 6].forEach(lvl => {
       const d = Maze.generate(lvl, lvl * 7919 + 104729);
       let low = 0, solid = 0;
       d.grid.forEach(row => row.forEach(t => {
@@ -207,20 +207,21 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     });
     return out;
   });
-  ok(themed[2].theme === 'mansion' && themed[3].theme === 'strait' && themed[4].theme === 'beach',
-     'levels 2, 3 and 4 are the mansion, the street and the beach');
-  ok(themed[1].theme === 'garden' && themed[5].theme === 'garden',
+  ok(themed[2].theme === 'mansion' && themed[3].theme === 'strait' &&
+     themed[4].theme === 'beach' && themed[5].theme === 'supermarket',
+     'levels 2 to 5 are the mansion, the street, the beach and the supermarket');
+  ok(themed[1].theme === 'garden' && themed[6].theme === 'garden',
      'the other levels are still generated gardens');
-  ok(themed[2].pickups === 9 && themed[3].pickups === 9 && themed[4].pickups === 9,
-     'all three hand-drawn levels hold nine collectibles');
-  ok([2, 3, 4].every(l => themed[l].low > 0 && themed[l].solid > 0),
+  ok([2, 3, 4, 5].every(l => themed[l].pickups === 9),
+     'all four hand-drawn levels hold nine collectibles');
+  ok([2, 3, 4, 5].every(l => themed[l].low > 0 && themed[l].solid > 0),
      'each has low obstacles to step over and solid ones that stop everyone');
 
   // the two set pieces: a rowboat parked in the villa lounge, and the Majestic
   // Centre standing in a block on Victoria Street
   const decor = await p.evaluate(() => {
     const out = {};
-    [2, 3].forEach(lvl => {
+    [2, 3, 5].forEach(lvl => {
       const d = Maze.generate(lvl, 0);
       out[lvl] = (d.decor || []).map(dec => ({
         kind: dec.kind,
@@ -237,15 +238,20 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(decor[2].some(d => d.kind === 'stairs'), 'the staircase is still there too');
   ok(tower && tower.tile === 2,
      'the Majestic Centre stands in a solid block on the street level');
+  const fascia = decor[5].find(d => d.kind === 'fascia');
+  ok(fascia && fascia.tile === 2 && fascia.y === 0,
+     'the shop fascia runs along the top of the supermarket');
 
   // what each level looks like and who is chasing on it
   const look = await p.evaluate(async () => {
     const out = {};
-    for (const lvl of [2, 3]) {
+    for (const lvl of [2, 3, 5]) {
       window.MushroomBother.goToLevel(lvl);
       await new Promise(r => setTimeout(r, 60));
       const g = window.MushroomBother.state;
-      out[lvl] = { name: g.theme.name, rival: g.landlord.sayings[0].join(' '), caught: g.theme.rival.caught };
+      out[lvl] = { name: g.theme.name, caught: g.theme.rival.caught,
+                   rival: g.landlord.sayings[0].join(' '),
+                   sayings: g.landlord.sayings.map(x => x.join(' ')) };
     }
     return out;
   });
@@ -256,6 +262,11 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(look[3].name === 'STRAIT OF STUSSY', 'level 3 announces itself as ' + look[3].name);
   ok(look[3].rival === "WHERE'S YOUR RENT!?" && /MARYELLEN/.test(look[3].caught),
      'Maryellen and the photographer are the pair on the street level');
+  ok(look[5].name === 'THE SUPERMARKET', 'level 5 announces itself as ' + look[5].name);
+  const wantStaff = ['CLUB+ CARD?', 'SECURITY TO AISLE 3'];
+  ok(wantStaff.every(l => look[5].sayings.indexOf(l) >= 0) &&
+     look[5].sayings.length === wantStaff.length,
+     'on shift she says: ' + look[5].sayings.map(l => '"' + l + '"').join(' and '));
 
   // the hedge rule still bites indoors: Stussy cannot cross the furniture
   await p.evaluate(() => {
