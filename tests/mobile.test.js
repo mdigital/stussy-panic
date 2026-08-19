@@ -38,7 +38,8 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   const st = () => p.evaluate(() => {
     const g = window.MushroomBother.state;
     return { state: g.state, x: +g.cat.x.toFixed(1), y: +g.cat.y.toFixed(1),
-             dir: g.cat.dir, moving: !!g.cat.moving, complaining: g.complaining,
+             dir: g.cat.dir, moving: !!g.cat.moving, rolling: !!g.cat.rolling,
+             complaining: g.complaining,
              complaint: Math.round(g.complaint), lives: g.lives };
   });
 
@@ -89,7 +90,19 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   await p.waitForTimeout(200);
   const stopped = await st();
-  ok(!stopped.moving, 'lifting off the d-pad stops Stussy');
+  ok(stopped.moving && stopped.rolling, 'she keeps walking after your thumb leaves the d-pad');
+
+  // a tap too quick to span a frame still steers
+  const tapped = await p.evaluate(async ([dx, dy]) => {
+    const g = window.MushroomBother.state;
+    window.__touch('pointerdown', 9, 116 + dx, 426 + dy);
+    window.__touch('pointerup', 9, 116 + dx, 426 + dy);
+    const from = { x: g.cat.x, y: g.cat.y };
+    await new Promise(r => setTimeout(r, 500));
+    return { moved: Math.hypot(g.cat.x - from.x, g.cat.y - from.y), rolling: !!g.cat.rolling };
+  }, PAD[dir1]);
+  ok(tapped.rolling && tapped.moved > 20,
+     `a quick tap on the pad sends her ${tapped.moved.toFixed(0)}px on its own`);
 
   // 4. dragging the thumb across the pad changes direction — walk on until we
   //    are somewhere with a second way out, then slide the thumb to it.
@@ -116,19 +129,24 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   });
   const scoreBefore = await p.evaluate(() => window.MushroomBother.state.score);
   const dir3 = (await openFrom())[0];
-  await p.evaluate(([dx, dy]) => {
+  const both = await p.evaluate(async ([dx, dy]) => {
+    const g = window.MushroomBother.state;
+    const from = { x: g.cat.x, y: g.cat.y };
     window.__touch('pointerdown', 1, 116 + dx, 426 + dy);  // finger 1: d-pad
     window.__touch('pointerdown', 2, 800 - 116, 426);      // finger 2: complain
+    await new Promise(r => setTimeout(r, 600));
+    return {
+      complaining: g.complaining, complaint: Math.round(g.complaint),
+      // measure how far she got during the window: she may legitimately reach a
+      // wall and park before it ends, so "still moving" would be a flaky check
+      travelled: Math.hypot(g.cat.x - from.x, g.cat.y - from.y),
+      flee: +g.photographer.flee.toFixed(2)
+    };
   }, PAD[dir3]);
-  await p.waitForTimeout(600);
-  const both = await p.evaluate(() => {
-    const g = window.MushroomBother.state;
-    return { complaining: g.complaining, complaint: Math.round(g.complaint),
-             moving: !!g.cat.moving, flee: +g.photographer.flee.toFixed(2) };
-  });
   const gained = await p.evaluate(s => window.MushroomBother.state.score - s, scoreBefore);
   ok(both.complaining && both.complaint < 100, `complain button drains the meter (${both.complaint})`);
-  ok(both.moving, 'walking and complaining work on two fingers at once');
+  ok(both.travelled > 10,
+     `walking and complaining work on two fingers at once (${both.travelled.toFixed(0)}px while yowling)`);
   ok(both.flee > 0 && gained >= 25, 'the button scares off a nearby chaser');
   await p.screenshot({ path: path.join(__dirname, 'mobile-play.png') });
 
@@ -138,7 +156,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   }, PAD[dir3]);
   await p.waitForTimeout(200);
   const released = await st();
-  ok(!released.complaining && !released.moving, 'lifting both fingers stops everything');
+  ok(!released.complaining, 'lifting the complain button stops the yowling');
 
   // 6. tap to restart after game over
   await p.evaluate(async () => {

@@ -65,6 +65,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 4: complaining scares whoever is in earshot --------------------------
   const scared = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
+    g.cat.rolling = false;                 // park her: this is a scare test, not a walk test
     g.complaint = 100; g.exhausted = false;
     g.photographer.flee = 0; g.landlord.flee = 0;
     g.photographer.x = g.cat.x + 60; g.photographer.y = g.cat.y;
@@ -83,6 +84,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 4b: the two of them call out when they close in ---------------------
   const taunts = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
+    g.cat.rolling = false;              // park her so they stay in earshot
     g.grace = 10;                       // keep Stussy safe while they crowd in
     g.photographer.flee = 0; g.landlord.flee = 0;
     g.photographer.tauntTimer = 0; g.landlord.tauntTimer = 0;
@@ -113,6 +115,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 5: capture, life loss, respawn --------------------------------------
   const cap = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
+    g.cat.rolling = false;              // stand still and be caught
     g.grace = 0; g.photographer.flee = 0; g.landlord.flee = 0;
     const lives = g.lives;
     g.photographer.x = g.cat.x; g.photographer.y = g.cat.y;
@@ -131,6 +134,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 6: game over and restart --------------------------------------------
   const over = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
+    g.cat.rolling = false;
     g.lives = 0; g.grace = 0; g.photographer.flee = 0;
     g.photographer.x = g.cat.x; g.photographer.y = g.cat.y;
     await new Promise(r => setTimeout(r, 300));
@@ -179,7 +183,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     return out;
   });
   ok(themed[2].theme === 'mansion' && themed[3].theme === 'strait',
-     'level 2 is The Mansion and level 3 is the Strait of Stussy');
+     'level 2 is Hawker St Mansion and level 3 is the Strait of Stussy');
   ok(themed[1].theme === 'garden' && themed[4].theme === 'garden',
      'the other levels are still generated gardens');
   ok(themed[2].pickups === 9 && themed[3].pickups === 9,
@@ -198,7 +202,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     }
     return out;
   });
-  ok(look[2].name === 'THE MANSION', 'level 2 announces itself as ' + look[2].name);
+  ok(look[2].name === 'HAWKER ST MANSION', 'level 2 announces itself as ' + look[2].name);
   ok(look[2].rival === 'FUCK OFF STUSSY',
      'Charteris Bay Man greets Stussy with "' + look[2].rival + '"');
   ok(/CHARTERIS BAY MAN/.test(look[2].caught), 'he replaces Maryellen on that level');

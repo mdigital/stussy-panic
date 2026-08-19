@@ -161,7 +161,7 @@
    *   .  open ground                   c  the thing you are collecting
    *   S  Stussy   P  photographer      R  the rival chaser
    *
-   * THE MANSION — a two-storey Wellington villa of the Mt Victoria sort:
+   * HAWKER ST MANSION — a two-storey Wellington villa of the Mt Victoria sort:
    * bedrooms off an upstairs hallway, a staircase down the middle, lounge and
    * kitchen either side of the downstairs hall. The furniture is what the
    * people step over.

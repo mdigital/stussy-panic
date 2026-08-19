@@ -17,6 +17,7 @@
   var HUD_H = 56;
 
   var TURN_TOL = 7;          // how close to a tile centre the cat may turn
+  var TURN_BUFFER = 0.6;     // seconds a turn you asked for early stays queued
   var CATCH_DIST = 19;       // pixels between centres that counts as a capture
   var SCARE_RADIUS = 4.6 * TILE;
   var FLEE_TIME = 2.3;       // seconds an enemy keeps running after being yelled at
@@ -53,7 +54,7 @@
       }
     },
     mansion: {
-      name: 'THE MANSION',
+      name: 'HAWKER ST MANSION',
       subtitle: 'nine cheese and crackers — mind the furniture',
       cleared: 'MANSION CLEARED!',
       floor: S.floor, low: S.furniture, solid: S.wall,
@@ -124,9 +125,12 @@
   global.addEventListener('keyup', function (e) { keys[e.code] = false; });
   global.addEventListener('blur', function () { keys = Object.create(null); Sfx.complaintStop(); });
 
+  // True if the key is down now, or was tapped since the last frame. A quick
+  // tap can begin and end between two frames, and it still has to steer.
   function held(name) {
     for (var code in KEY_ALIASES) {
-      if (KEY_ALIASES[code] === name && keys[code]) return true;
+      if (KEY_ALIASES[code] !== name) continue;
+      if (keys[code] || pressed[code]) return true;
     }
     return false;
   }
@@ -142,6 +146,7 @@
   var touch = {
     enabled: false,
     dir: null,          // {x, y} while a direction is being pressed
+    latch: null,        // a tap too quick to span a frame, consumed next frame
     complain: false,
     padPointer: null,
     yellPointer: null
@@ -197,6 +202,7 @@
       if (within(p, { cx: DPAD.cx, cy: DPAD.cy, r: DPAD.r * 1.2 })) {
         touch.padPointer = ev.pointerId;
         touch.dir = padDirection(p);
+        if (touch.dir) touch.latch = touch.dir;
         ev.preventDefault();
         return;
       }
@@ -210,6 +216,7 @@
   function onPointerMove(ev) {
     if (ev.pointerId !== touch.padPointer) return;
     touch.dir = padDirection(canvasPoint(ev));
+    if (touch.dir) touch.latch = touch.dir;
     ev.preventDefault();
   }
 
@@ -257,7 +264,9 @@
       anim: 0,
       lines: null,
       tauntTimer: 0,
-      tauntCooldown: 1.5
+      tauntCooldown: 1.5,
+      rolling: false,      // Stussy: under way, as opposed to parked
+      wantTimer: 0
     };
   }
 
@@ -320,6 +329,8 @@
       e.prev = { x: e.home.x, y: e.home.y };
       e.dir = { x: 1, y: 0 };
       e.want = null;
+      e.rolling = false;
+      e.wantTimer = 0;
       e.flee = 0;
       e.tauntTimer = 0;
       e.tauntCooldown = 1.5;
@@ -354,13 +365,23 @@
     if (held('down')) return { x: 0, y: 1 };
     if (held('left')) return { x: -1, y: 0 };
     if (held('right')) return { x: 1, y: 0 };
-    return touch.dir;
+    return touch.dir || touch.latch;
   }
 
   function updateCat(dt) {
     var cat = game.cat;
+
+    // Pac-Man steering: a tap is an instruction, not a throttle. Stussy keeps
+    // going in the last direction until she is turned or runs into something.
     var want = readWantedDirection();
-    if (want) cat.want = want;
+    if (want) {
+      cat.want = want;
+      cat.wantTimer = TURN_BUFFER;
+      cat.rolling = true;
+    } else if (cat.wantTimer > 0) {
+      cat.wantTimer -= dt;
+      if (cat.wantTimer <= 0) cat.want = null;   // a turn asked for too early lapses
+    }
 
     var t = tileOf(cat);
     var cxc = t.x * TILE + TILE / 2, cyc = t.y * TILE + TILE / 2;
@@ -376,12 +397,7 @@
       }
     }
 
-    // Stussy only walks while you are asking — key down, or thumb on the pad.
-    if (!want) {
-      cat.moving = false;
-      return;
-    }
-    cat.moving = true;
+    if (!cat.rolling) { cat.moving = false; return; }
 
     var step = cat.speed * dt;
     var nx = cat.x + cat.dir.x * step;
@@ -392,8 +408,13 @@
       if (cat.dir.y > 0) ny = Math.min(ny, cyc);
       if (cat.dir.y < 0) ny = Math.max(ny, cyc);
     }
+
+    var advanced = Math.abs(nx - cat.x) + Math.abs(ny - cat.y);
     cat.x = nx; cat.y = ny;
-    cat.anim += step;
+    cat.moving = advanced > 0.001;
+    if (cat.moving) cat.anim += step;
+    // parked against a wall: wait here until she is pointed somewhere else
+    else cat.rolling = false;
   }
 
   /* -------------------------------------------------------------- enemy AI */
@@ -924,7 +945,9 @@
 
   function drawTouchControls() {
     if (!controlsLive()) return;
-    var active = touch.dir;
+    // with your thumb down the pad shows what you are asking for; with it off it
+    // shows the direction Stussy is still travelling in
+    var active = touch.dir || touch.latch || (game.cat.rolling ? game.cat.dir : null);
 
     // d-pad, bottom left
     ctx.save();
@@ -1023,7 +1046,7 @@
     ctx.fillText('MARYELLEN, YOUR LANDLORD', 610, 268);
 
     var lines = touch.enabled ? [
-      'D-PAD, BOTTOM LEFT  ..... walk Stussy around the maze',
+      'D-PAD, BOTTOM LEFT  ..... tap a way — she keeps going',
       'HOLD COMPLAIN, RIGHT .... yowl and send them running',
       '',
       'Stussy cannot cross hedges or trees.',
@@ -1031,7 +1054,7 @@
       'Complaining drains the meter; let go and it slowly refills.',
       'Run it dry and Stussy loses their voice until it recovers.'
     ] : [
-      'ARROWS or WASD  ..... walk Stussy around the maze',
+      'ARROWS or WASD  ..... tap a way — she keeps going',
       'HOLD SPACE  ......... complain loudly and send them running',
       '',
       'Stussy cannot cross hedges or trees.',
@@ -1094,6 +1117,7 @@
     update(dt);
     draw();
     for (var k in pressed) delete pressed[k];
+    touch.latch = null;
     global.requestAnimationFrame(frame);
   }
 

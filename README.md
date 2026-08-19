@@ -26,7 +26,7 @@ from rectangles at runtime, so there are no image or audio files to load.
 
 | Key | Does |
 | --- | --- |
-| Arrow keys or WASD | Walk Stussy (who only moves while a key is held) |
+| Arrow keys or WASD | Steer Stussy — tap a direction and she keeps going |
 | Hold `SPACE` | Complain — scares off anyone nearby, drains the meter |
 | `P` | Pause |
 | `R` | Restart |
@@ -37,9 +37,10 @@ from rectangles at runtime, so there are no image or audio files to load.
 Touch devices get on-screen controls drawn over the garden, and the page scales
 the whole game to fit the screen — landscape gives you the most room.
 
-- **D-pad, bottom left.** Press a direction to walk, and slide your thumb
-  around the pad to change direction without lifting off. Stussy walks only
-  while your thumb is down.
+- **D-pad, bottom left.** Tap a direction and Stussy keeps going — no need to
+  hold it. Slide your thumb around the pad to change direction without lifting
+  off. With your thumb away, the pad shows the direction she is still travelling
+  in.
 - **COMPLAIN button, bottom right.** Hold it to yowl. The ring around the
   button is the complaint meter, so you can watch it drain without looking away
   from the maze; it turns red and reads NO VOICE when you have run it dry.
@@ -54,10 +55,10 @@ Most levels are a freshly generated garden, but two are drawn by hand.
 | # | Level | Collect | Chasers |
 | --- | --- | --- | --- |
 | 1, 4+ | the garden | mushrooms | the photographer and Maryellen |
-| 2 | **The Mansion** | cheese and crackers | the photographer and **Charteris Bay Man** |
+| 2 | **Hawker St Mansion** | cheese and crackers | the photographer and **Charteris Bay Man** |
 | 3 | **Strait of Stussy** | sugared doughnuts | the photographer and Maryellen |
 
-**The Mansion** is a two-storey Wellington villa of the Mt Victoria sort:
+**Hawker St Mansion** is a two-storey Wellington villa of the Mt Victoria sort:
 four bedrooms off an upstairs hallway, a staircase down the middle of the house,
 and a lounge and kitchen either side of the downstairs hall. The beds and sofas
 are what the people step over. The rival here is Charteris Bay Man — an aging
@@ -68,6 +69,17 @@ contribution is "FUCK OFF STUSSY".
 grid of lanes and the angled corner where Victoria meets Bond. Planter boxes and
 low walls line the footpaths, and the people stride straight over them while
 Stussy goes the long way round.
+
+## Steering
+
+Stussy steers like Pac-Man rather than a remote-control car: a tap points her
+somewhere and she keeps going until she is turned or runs into something, where
+she parks square on a tile until you point her somewhere else. She stands still
+at the start of a level until you do.
+
+Turns are buffered, so a corner asked for slightly early still happens — but the
+request lapses after about half a second, rather than sitting in the queue and
+turning her at some junction you have long since forgotten about.
 
 ## The rules in full
 
@@ -137,6 +149,7 @@ The tests drive the real game in headless Chromium.
 ```bash
 npm install playwright-core          # plus a Chromium build
 CHROMIUM=/path/to/chrome node tests/rules.test.js        # 26 rule checks
+CHROMIUM=/path/to/chrome node tests/steer.test.js        # 5 steering checks
 CHROMIUM=/path/to/chrome node tests/mobile.test.js       # 11 touch checks
 CHROMIUM=/path/to/chrome node tests/music.test.js        # 6 soundtrack checks
 CHROMIUM=/path/to/chrome node tests/autoplay.test.js 90  # bot plays for 90s
@@ -158,6 +171,11 @@ steers (including sliding the thumb between directions), that the complain
 button drains the meter and scares a chaser, that walking and complaining work
 together on two fingers, and that taps start and restart the game without the
 d-pad corner swallowing them.
+
+`steer.test.js` covers the Pac-Man steering: that she waits at the start, that
+one tap carries her across the garden with nothing held, that she parks square
+against a wall, that tapping back turns her around, and that a turn asked for
+too early lapses instead of firing later.
 
 `music.test.js` taps the music bus with an analyser, records a loudness envelope
 and autocorrelates it: the track has to be audible and to pulse on the beat at
