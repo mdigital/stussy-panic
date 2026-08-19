@@ -48,7 +48,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
       says: g.says ? g.says.join(' ') : null,
       enemies: g.enemies.length,
       police: g.police ? {
-        lines: g.police.lines.join(' '),
+        lines: g.police.sayings[0].join(' '),
         caught: g.police.caughtText,
         crossesHedges: g.police.stepsOverHedges,
         x: Math.round(g.police.x), y: Math.round(g.police.y)

@@ -77,7 +77,9 @@ top of the street — banded glass drum, terracotta column, spiked crown.
 **The Beach** is open sand along the water, with rock groynes and driftwood
 between you and the nine life preserver rings somebody has left lying about. Maryellen stays home: the rival here is Willie, a
 pear-shaped man in light blue speedos and sunglasses who greets Stussy, when he
-catches her, with "HELLO DARLING".
+catches her, with "HELLO DARLING". On the way over he will let you know it is
+windy, that it's raining, or that he is getting a beard trim tomorrow. His Pit
+Vipers stay on throughout.
 
 ### The bonus item
 
@@ -130,8 +132,9 @@ turning her at some junction you have long since forgotten about.
   500 + 100 × level for clearing the garden.
 - **They talk.** Get within seven tiles and they start on you — Maryellen wants
   to know where your rent is, the photographer threatens a bad review on
-  Trademe, Charteris Bay Man just tells Stussy to get lost — and whoever catches
-  Stussy gets the last word. Scare one off and it shuts up while it runs.
+  Trademe, Charteris Bay Man just tells Stussy to get lost, Willie has four
+  observations about the weather and his grooming — and whoever catches Stussy
+  gets the last word. Scare one off and it shuts up while it runs.
 - **The two chasers behave differently.** The photographer heads straight for
   Stussy. Maryellen aims a few tiles ahead of where Stussy is going, trying to
   cut them off — so doubling back can beat her.

@@ -54,7 +54,7 @@
       bonus: { draw: S.sonos, chases: 'cat' },
       rival: {
         draw: S.landlord,
-        lines: ["WHERE'S YOUR RENT!?"],
+        sayings: [["WHERE'S YOUR RENT!?"]],
         caught: 'CAUGHT BY MARYELLEN!'
       }
     },
@@ -69,7 +69,7 @@
       decor: { stairs: S.stairs, rowboat: S.rowboat },
       rival: {
         draw: S.rocker,
-        lines: ['FUCK OFF STUSSY'],
+        sayings: [['FUCK OFF STUSSY']],
         caught: 'SEEN OFF BY CHARTERIS BAY MAN!'
       }
     },
@@ -83,7 +83,12 @@
       decor: { sea: S.sea },
       rival: {
         draw: S.willie,
-        lines: ['LOVELY DAY FOR IT!'],
+        sayings: [
+          ['LOVELY DAY FOR IT!'],
+          ['GETTING A BEARD', 'TRIM TOMORROW'],
+          ['WINDY'],
+          ["IT'S RAINING"]
+        ],
         caught: 'HELLO DARLING'
       },
       // Down here the law has other priorities than a cat with a jar.
@@ -100,7 +105,7 @@
       decor: { majestic: S.majestic },
       rival: {
         draw: S.landlord,
-        lines: ["WHERE'S YOUR RENT!?"],
+        sayings: [["WHERE'S YOUR RENT!?"]],
         caught: 'CAUGHT BY MARYELLEN!'
       }
     }
@@ -117,15 +122,16 @@
     ['GO AWAY!']
   ];
 
-  // What the two of them shout when they close in on Stussy. Split into lines
-  // so a long one does not sprawl across half the garden.
+  // What they shout when they close in on Stussy. Each character has a list of
+  // sayings and picks one at a time; a saying is split into lines here so a long
+  // one does not sprawl across half the garden.
   var TAUNTS = {
-    photographer: ['BAD REVIEW ON', 'TRADEME HEY!?!'],
-    landlord: ["WHERE'S YOUR RENT!?"]
+    photographer: [['BAD REVIEW ON', 'TRADEME HEY!?!']],
+    landlord: [["WHERE'S YOUR RENT!?"]]
   };
 
-  TAUNTS.police = ["THAT'S NOT YOURS!"];
-  TAUNTS.policeRival = ['PUT THAT AWAY!'];
+  TAUNTS.police = [["THAT'S NOT YOURS!"]];
+  TAUNTS.policeRival = [['PUT THAT AWAY!']];
 
   var TAUNT_RADIUS = 7 * TILE;   // how close they get before they start on you
   var TAUNT_SHOW = 2.2;          // seconds a line stays up
@@ -289,7 +295,8 @@
       flee: 0,
       prev: { x: tile.x, y: tile.y },
       anim: 0,
-      lines: null,
+      sayings: null,
+      saying: null,        // the one currently in the bubble
       tauntTimer: 0,
       tauntCooldown: 1.5,
       rolling: false,      // Stussy: under way, as opposed to parked
@@ -338,10 +345,10 @@
     var marySpeed = Math.min(140, 96 + (level - 1) * 5);
     game.photographer = makeEntity(data.spawns.photographer, photoSpeed, true);
     game.landlord = makeEntity(data.spawns.landlord, marySpeed, true);
-    game.photographer.lines = TAUNTS.photographer;
+    game.photographer.sayings = TAUNTS.photographer;
     game.photographer.draw = S.photographer;
     game.photographer.caughtText = 'SNAPPED BY THE PHOTOGRAPHER!';
-    game.landlord.lines = game.theme.rival.lines;
+    game.landlord.sayings = game.theme.rival.sayings;
     game.landlord.draw = game.theme.rival.draw;
     game.landlord.caughtText = game.theme.rival.caught;
     game.enemies = [game.photographer, game.landlord];
@@ -405,7 +412,7 @@
       police.chasing = game.landlord;
       police.tauntTarget = game.landlord;
       police.harmless = true;
-      police.lines = TAUNTS.policeRival;
+      police.sayings = TAUNTS.policeRival;
       police.speed = Math.min(police.speed, game.landlord.speed - 10);
       // start him a few paces behind Willie, snapped to a tile he can stand on
       police.tx = Math.floor(game.landlord.x / TILE) - 3;
@@ -418,7 +425,7 @@
       police.home = { x: police.tx, y: police.ty };
     } else {
       police.chasing = game.cat;
-      police.lines = TAUNTS.police;
+      police.sayings = TAUNTS.police;
     }
 
     game.police = police;
@@ -654,6 +661,10 @@
       var mark = e.tauntTarget || game.cat;
       var dx = e.x - mark.x, dy = e.y - mark.y;
       if (dx * dx + dy * dy < TAUNT_RADIUS * TAUNT_RADIUS && e.tauntCooldown <= 0) {
+        // pick something to say — most of them only have the one thing
+        if (e.sayings && e.sayings.length) {
+          e.saying = e.sayings[(Math.random() * e.sayings.length) | 0];
+        }
         e.tauntTimer = TAUNT_SHOW;
         e.tauntCooldown = TAUNT_SHOW + TAUNT_GAP + Math.random() * 2;
         Sfx.taunt(e === game.photographer);
@@ -772,6 +783,7 @@
       var dx = e.x - game.cat.x, dy = e.y - game.cat.y;
       if (dx * dx + dy * dy < CATCH_DIST * CATCH_DIST) {
         game.caughtBy = e.caughtText;
+        if (e.sayings && e.sayings.length) e.saying = e.sayings[0];
         e.tauntTimer = 1.6;
         game.lives--;
         game.state = STATE.CAUGHT;
@@ -994,8 +1006,8 @@
       ctx.fillText('!', e.x, e.y - 20);
     });
     game.enemies.forEach(function (e) {
-      if (e.tauntTimer > 0 && e.flee <= 0 && e.lines) {
-        drawSpeechBubble(e.x, e.y - 26, e.lines);
+      if (e.tauntTimer > 0 && e.flee <= 0 && e.saying) {
+        drawSpeechBubble(e.x, e.y - 26, e.saying);
       }
     });
     if (game.complaining) drawSpeechBubble(game.cat.x, game.cat.y - 26, game.phrase);

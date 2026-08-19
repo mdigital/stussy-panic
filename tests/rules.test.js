@@ -111,8 +111,8 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     return {
       photoTimer: g.photographer.tauntTimer,
       maryTimer: g.landlord.tauntTimer,
-      photoLines: g.photographer.lines.join(' '),
-      maryLines: g.landlord.lines.join(' ')
+      photoLines: g.photographer.sayings[0].join(' '),
+      maryLines: g.landlord.sayings[0].join(' ')
     };
   });
   ok(taunts.photoTimer > 0 && taunts.maryTimer > 0, 'both start on Stussy once they are close');
@@ -238,7 +238,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
       window.MushroomBother.goToLevel(lvl);
       await new Promise(r => setTimeout(r, 60));
       const g = window.MushroomBother.state;
-      out[lvl] = { name: g.theme.name, rival: g.landlord.lines.join(' '), caught: g.theme.rival.caught };
+      out[lvl] = { name: g.theme.name, rival: g.landlord.sayings[0].join(' '), caught: g.theme.rival.caught };
     }
     return out;
   });

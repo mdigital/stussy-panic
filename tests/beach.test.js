@@ -24,12 +24,15 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     await new Promise(r => setTimeout(r, 2300));
     const g = window.MushroomBother.state;
     return { name: g.theme.name, left: g.remaining,
-             rival: g.landlord.lines.join(' '), caught: g.landlord.caughtText,
+             rival: g.landlord.sayings.map(s => s.join(' ')), caught: g.landlord.caughtText,
              police: !!g.police };
   });
   ok(info.name === 'THE BEACH', 'level 4 is ' + info.name);
   ok(info.left === 9, 'nine life rings to collect');
   ok(info.caught === 'HELLO DARLING', `Willie's line when he catches her: "${info.caught}"`);
+  const expected = ['LOVELY DAY FOR IT!', 'GETTING A BEARD TRIM TOMORROW', 'WINDY', "IT'S RAINING"];
+  ok(expected.every(line => info.rival.indexOf(line) >= 0) && info.rival.length === expected.length,
+     'and he has four things to say on the way over: ' + info.rival.map(l => `"${l}"`).join(', '));
   ok(!info.police, 'no policeman until the jar is picked up');
 
   // take the jar
@@ -44,7 +47,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
       gained: g.score - before,
       says: g.says ? g.says.join(' ') : null,
       police: g.police ? {
-        lines: g.police.lines.join(' '),
+        lines: g.police.sayings[0].join(' '),
         chasingWillie: g.police.chasing === g.landlord,
         harmless: !!g.police.harmless,
         slowerThanWillie: g.police.speed < g.landlord.speed

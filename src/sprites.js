@@ -110,6 +110,12 @@
     thwart:    '#c8a267',
     oar:       '#a87f45',
     // the beach
+    // Pit Vipers: one wide shield, mirrored pink through purple
+    viperPink: '#e8399c',
+    viperMid:  '#c33ec0',
+    viperPurp: '#9b3fd8',
+    viperLit:  '#ff8fd0',
+    viperFrame:'#1a1a20',
     speedo:    '#7ec4e8',
     speedoLit: '#a8dcf5',
     speedoDark:'#4b93bd',
@@ -626,15 +632,28 @@
     r(ctx, 3, 7, 2, 4, C.skin);
     r(ctx, 12, 7, 2, 4, C.skin);
 
-    // head, sunglasses, and a fine head of hair
+    // head and a fine head of hair
     r(ctx, 5, 1, 6, 5, C.skin);
     r(ctx, 5, 5, 6, 1, C.skinDark);
-    r(ctx, 5, 0, 6, 2, C.rockDark);              // hair
-    r(ctx, 4, 2, 8, 2, C.specs);                 // sunglasses, wraparound
-    r(ctx, 5, 2, 2, 1, C.seaLit);                // a glint off the lenses
-    r(ctx, 9, 2, 2, 1, C.seaLit);
-    if (scared) r(ctx, 7, 4, 2, 2, C.black);
-    else        r(ctx, 6, 4, 4, 1, C.skinDark);  // entirely pleased with himself
+    r(ctx, 5, 0, 6, 1, C.rockDark);
+
+    // Pit Vipers: one shield across the lot, wider than his head, mirrored
+    // pink on one side through to purple on the other
+    r(ctx, 2, 1, 12, 1, C.viperFrame);           // brow bar
+    r(ctx, 3, 2, 3, 3, C.viperPink);             // the shield itself
+    r(ctx, 6, 2, 2, 3, C.viperMid);
+    r(ctx, 8, 2, 2, 3, C.viperMid);
+    r(ctx, 10, 2, 3, 3, C.viperPurp);
+    r(ctx, 3, 2, 4, 1, C.viperLit);              // mirror catching the sun
+    r(ctx, 9, 2, 2, 1, C.viperLit);
+    r(ctx, 2, 2, 1, 3, C.viperFrame);            // rims and the nose notch
+    r(ctx, 13, 2, 1, 3, C.viperFrame);
+    r(ctx, 7, 4, 2, 1, C.viperFrame);
+    r(ctx, 1, 1, 1, 4, C.viperFrame);            // temples, out past his head
+    r(ctx, 14, 1, 1, 4, C.viperFrame);
+
+    if (scared) r(ctx, 7, 5, 2, 2, C.black);
+    else        r(ctx, 6, 5, 4, 1, C.skinDark);  // entirely pleased with himself
   }
 
   /* --------------------------------------------------------- the beach */
