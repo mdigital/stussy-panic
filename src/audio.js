@@ -88,6 +88,15 @@
 
     empty: function () { blip(140, 0.12, 'square', 0.25, 90); },
 
+    // A laptop coming off a stool the hard way: a bright crack, then a low
+    // rolling boom sliding down into the floor.
+    explode: function () {
+      blip(700, 0.08, 'square', 0.5, 120);
+      blip(180, 0.5, 'sawtooth', 0.65, 28);
+      global.setTimeout(function () { blip(120, 0.6, 'sawtooth', 0.5, 20); }, 90);
+      global.setTimeout(function () { blip(320, 0.12, 'square', 0.3, 60); }, 50);
+    },
+
     // Two rising whoops, for the moment a policeman takes an interest.
     siren: function () {
       blip(520, 0.22, 'square', 0.32, 880);

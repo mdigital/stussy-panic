@@ -200,6 +200,25 @@
     alienEye:  '#ffd23e',
     mesh:      '#3a3f4a',
 
+    // the photo studio: walls, sign and gear in a single grey family
+    stFloor:   '#e2e2e6',
+    stFloorAlt:'#dadade',
+    stJoint:   '#c9c9cf',
+    stWall:    '#c4c4cb',
+    stWallLit: '#dcdce1',
+    stWallDark:'#9d9da6',
+    signBoard: '#36363d',
+    signText:  '#e9e9ef',
+    gear:      '#5a5a63',
+    gearLit:   '#8f8f98',
+    gearDark:  '#2f2f36',
+    softbox:   '#f4f4f7',
+    cordDark:  '#26262b',
+    silver:    '#d5d6db',
+    silverDk:  '#a3a5ad',
+    glow:      '#c3e2ff',
+    scorch:    '#1c1c20',
+
     anchor:    '#4a4d57',
     anchorLit: '#767a86',
     rope:      '#c9b07a',
@@ -649,6 +668,179 @@
     r(ctx, 11, y + 7, 1, 1, C.sugar);
     r(ctx, 8, y + 2, 1, 1, C.sugar);
     r(ctx, 7, y + 9, 1, 1, C.sugar);
+  }
+
+  /* ------------------------------------------------------- the photo studio */
+
+  // Pale monochrome floor, shared by every studio painter so the gear sits on
+  // studio boards rather than whatever the street painted underneath.
+  function studioBase(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = ((tx + ty) & 1) ? C.stFloor : C.stFloorAlt;
+    ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = C.stJoint;
+    ctx.fillRect(px, py, size, u);
+    ctx.fillRect(px, py, u, size);
+    var n = tileNoise(tx, ty);
+    if (n > 0.82) {                                 // a bit of gaffer tape
+      ctx.fillStyle = C.stWallDark;
+      ctx.fillRect(px + 4 * u, py + 10 * u, 5 * u, u);
+      ctx.fillRect(px + 6 * u, py + 8 * u, u, 5 * u);
+    }
+  }
+
+  function drawStudioFloor(ctx, px, py, size, tx, ty) {
+    studioBase(ctx, px, py, size, tx, ty);
+  }
+
+  // The studio's own wall: flat grey panels with a skirting, deliberately
+  // quieter than the city outside.
+  function drawStudioWall(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    ctx.fillStyle = C.stWall;
+    ctx.fillRect(px, py, size, size);
+    ctx.fillStyle = C.stWallLit;
+    ctx.fillRect(px, py, size, 2 * u);
+    ctx.fillStyle = C.stWallDark;
+    ctx.fillRect(px, py + 14 * u, size, 2 * u);     // skirting
+    ctx.fillRect(px + 7 * u, py + 2 * u, u, 12 * u);   // panel joint
+  }
+
+  // The PROFILE PHOTOS sign, hung across the border wall above the studio.
+  function drawStudioSign(ctx, px, py, size) {
+    var u = size / UNIT;
+    var board = { x: px - 2.6 * size, w: 6.2 * size };
+    ctx.fillStyle = C.gearDark;
+    ctx.fillRect(board.x, py + 3 * u, board.w, 12 * u);
+    ctx.fillStyle = C.signBoard;
+    ctx.fillRect(board.x + u, py + 4 * u, board.w - 2 * u, 10 * u);
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold ' + Math.round(size * 0.42) + 'px "Courier New", monospace';
+    ctx.fillStyle = C.signText;
+    ctx.fillText('PROFILE PHOTOS', board.x + board.w / 2, py + 9.2 * u);
+    ctx.restore();
+  }
+
+  // A studio light on a stand: pole, splayed feet, big softbox up top.
+  function drawStudioLight(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    studioBase(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px + 3 * u, py + 14 * u, 10 * u, u);
+    ctx.fillStyle = C.gear;
+    ctx.fillRect(px + 7 * u, py + 4 * u, 2 * u, 10 * u);   // the pole
+    ctx.fillRect(px + 3 * u, py + 13 * u, 4 * u, u);       // feet
+    ctx.fillRect(px + 9 * u, py + 13 * u, 4 * u, u);
+    ctx.fillStyle = C.gearDark;
+    ctx.fillRect(px + 4 * u, py + 14 * u, 2 * u, u);
+    ctx.fillRect(px + 10 * u, py + 14 * u, 2 * u, u);
+    // softbox, tilted down at the set
+    ctx.fillStyle = C.gearDark;
+    ctx.fillRect(px + 2 * u, py, 12 * u, 6 * u);
+    ctx.fillStyle = C.softbox;
+    ctx.fillRect(px + 3 * u, py + u, 10 * u, 4 * u);
+    ctx.fillStyle = C.gearLit;
+    ctx.fillRect(px + 3 * u, py + 4 * u, 10 * u, u);
+  }
+
+  // The camera on its tripod, all in the same greys.
+  function drawStudioTripod(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    studioBase(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px + 3 * u, py + 14 * u, 10 * u, u);
+    ctx.fillStyle = C.gear;                          // splayed legs
+    ctx.fillRect(px + 7 * u, py + 6 * u, 2 * u, 4 * u);
+    ctx.fillRect(px + 5 * u, py + 10 * u, u, 4 * u);
+    ctx.fillRect(px + 4 * u, py + 13 * u, u, 2 * u);
+    ctx.fillRect(px + 10 * u, py + 10 * u, u, 4 * u);
+    ctx.fillRect(px + 11 * u, py + 13 * u, u, 2 * u);
+    ctx.fillRect(px + 7.5 * u, py + 10 * u, u, 5 * u);
+    // camera body and lens
+    ctx.fillStyle = C.gearDark;
+    ctx.fillRect(px + 4 * u, py + 2 * u, 8 * u, 4 * u);
+    ctx.fillStyle = C.gearLit;
+    ctx.fillRect(px + 4 * u, py + 2 * u, 8 * u, u);
+    ctx.fillStyle = C.gear;
+    ctx.fillRect(px + 10 * u, py + 3 * u, 3 * u, 2 * u);   // the lens, side on
+    ctx.fillStyle = C.softbox;
+    ctx.fillRect(px + 12 * u, py + 3.5 * u, u, u);
+  }
+
+  // A house plant, the one thing in the room allowed a colour.
+  function drawHousePlant(ctx, px, py, size, tx, ty) {
+    var u = size / UNIT;
+    studioBase(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px + 4 * u, py + 14 * u, 8 * u, u);
+    ctx.fillStyle = C.gear;                          // grey pot
+    ctx.fillRect(px + 5 * u, py + 10 * u, 6 * u, 5 * u);
+    ctx.fillStyle = C.gearLit;
+    ctx.fillRect(px + 4.5 * u, py + 10 * u, 7 * u, u);
+    ctx.fillStyle = C.shrub;                         // the foliage
+    ctx.fillRect(px + 4 * u, py + 3 * u, 8 * u, 7 * u);
+    ctx.fillRect(px + 2 * u, py + 5 * u, 3 * u, 4 * u);
+    ctx.fillRect(px + 11 * u, py + 4 * u, 3 * u, 4 * u);
+    ctx.fillStyle = C.shrubLit;
+    ctx.fillRect(px + 5 * u, py + 3 * u, 4 * u, 2 * u);
+    ctx.fillRect(px + 7 * u, py, 2 * u, 4 * u);      // one tall frond
+  }
+
+  // The stool with the silver laptop on it — and the wreckage afterwards.
+  function drawLaptopStool(ctx, px, py, size, tx, ty, exploded) {
+    var u = size / UNIT;
+    studioBase(ctx, px, py, size, tx, ty);
+
+    if (exploded) {
+      // scorch mark, the stool on its side, the laptop in two halves
+      ctx.fillStyle = C.scorch;
+      ctx.fillRect(px + 2 * u, py + 8 * u, 12 * u, 6 * u);
+      ctx.fillRect(px + 4 * u, py + 6 * u, 8 * u, 2 * u);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(px + u, py + 10 * u, 14 * u, 3 * u);
+      ctx.fillStyle = C.gear;                        // tipped stool
+      ctx.fillRect(px + u, py + 12 * u, 2 * u, 3 * u);
+      ctx.fillRect(px + 2 * u, py + 11 * u, 5 * u, u);
+      ctx.fillStyle = C.silverDk;                    // the two halves
+      ctx.fillRect(px + 8 * u, py + 12 * u, 5 * u, 2 * u);
+      ctx.fillRect(px + 10 * u, py + 7 * u, 4 * u, 2 * u);
+      ctx.fillStyle = C.scorch;
+      ctx.fillRect(px + 9 * u, py + 12 * u, u, u);
+      return;
+    }
+
+    ctx.fillStyle = C.shadow;
+    ctx.fillRect(px + 4 * u, py + 14 * u, 8 * u, u);
+    ctx.fillStyle = C.gear;                          // the stool
+    ctx.fillRect(px + 4 * u, py + 8 * u, 8 * u, u);
+    ctx.fillRect(px + 5 * u, py + 9 * u, u, 6 * u);
+    ctx.fillRect(px + 10 * u, py + 9 * u, u, 6 * u);
+    // the laptop, open and facing the set
+    ctx.fillStyle = C.silver;
+    ctx.fillRect(px + 4 * u, py + 6 * u, 8 * u, 2 * u);    // base
+    ctx.fillRect(px + 4 * u, py + 1 * u, 8 * u, 5 * u);    // lid
+    ctx.fillStyle = C.glow;                                // the screen
+    ctx.fillRect(px + 5 * u, py + 2 * u, 6 * u, 3 * u);
+    ctx.fillStyle = C.silverDk;
+    ctx.fillRect(px + 4 * u, py + 7 * u, 8 * u, u);
+  }
+
+  // The power cord, taped across the floor. Charred once it has done its work.
+  function drawCord(ctx, px, py, size, tx, ty, triggered) {
+    var u = size / UNIT;
+    studioBase(ctx, px, py, size, tx, ty);
+    var n = tileNoise(tx, ty);
+    var wob = (n > 0.5) ? 1 : -1;
+    ctx.fillStyle = triggered ? C.scorch : C.cordDark;
+    ctx.fillRect(px, py + 11 * u, 6 * u, u);
+    ctx.fillRect(px + 6 * u, py + (11 + wob) * u, 4 * u, u);
+    ctx.fillRect(px + 10 * u, py + 11 * u, 6 * u, u);
+    if (triggered) {
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillRect(px + 5 * u, py + 9 * u, 6 * u, 4 * u);
+    }
   }
 
   /* ------------------------------------------------------------- Miramar */
@@ -1408,6 +1600,14 @@
     fascia: drawFascia,
     staff: drawStaff,
     seal: drawSeal,
+    studioFloor: drawStudioFloor,
+    studioWall: drawStudioWall,
+    studioSign: drawStudioSign,
+    studioLight: drawStudioLight,
+    studioTripod: drawStudioTripod,
+    housePlant: drawHousePlant,
+    laptopStool: drawLaptopStool,
+    cord: drawCord,
     house: drawHouse,
     jackson: drawJackson,
     alien: drawAlien,

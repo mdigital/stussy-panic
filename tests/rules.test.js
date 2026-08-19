@@ -249,9 +249,58 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(decor[2].some(d => d.kind === 'stairs'), 'the staircase is still there too');
   ok(tower && tower.tile === 2,
      'the Majestic Centre stands in a solid block on the street level');
+  // the photo studio in the corner of the street level
+  const studio = {};
+  decor[3].forEach(d => { studio[d.kind] = (studio[d.kind] || 0) + 1; });
+  ok(studio.sign === 1 && studio.light === 2 && studio.tripod === 1 &&
+     studio.plant >= 1 && studio.laptop === 1 && studio.cord >= 3,
+     'the studio is furnished: sign, two lights, tripod, plant, the laptop and a cord (' +
+     JSON.stringify(studio) + ')');
+  const studioTiles = await p.evaluate(() => {
+    const d = Maze.generate(3, 0);
+    const cords = d.decor.filter(x => x.kind === 'cord');
+    const gear = d.decor.filter(x => ['light', 'tripod', 'plant', 'laptop'].indexOf(x.kind) >= 0);
+    return {
+      cordsWalkable: cords.every(c => d.grid[c.y][c.x] === Maze.FLOOR),
+      gearSolid: gear.every(g => d.grid[g.y][g.x] === Maze.TREE),
+      inside: d.mushrooms.filter(m => m.x < 9 && m.y < 8).length
+    };
+  });
+  ok(studioTiles.cordsWalkable, 'the cord lies on walkable floor — you can step on it, which is the point');
+  ok(studioTiles.gearSolid, 'the lights, tripod, plant and stool all block the way');
+  ok(studioTiles.inside === 2, 'two collectables are in the room (' + studioTiles.inside + ')');
+
   const fascia = decor[5].find(d => d.kind === 'fascia');
   ok(fascia && fascia.tile === 2 && fascia.y === 0,
      'the shop fascia runs along the top of the supermarket');
+
+  // the tripwire itself: step on the cord, lose the laptop and 4500 points
+  const trap = await p.evaluate(async () => {
+    window.MushroomBother.goToLevel(3);
+    const g = window.MushroomBother.state, T = 32;
+    // the intro banner holds the game out of play for a couple of seconds,
+    // and the trap is only armed during play
+    for (let i = 0; i < 200 && g.state !== 'play'; i++) {
+      await new Promise(r => setTimeout(r, 30));
+    }
+    g.grace = 60; g.cat.rolling = false;
+    g.photographer.x = -500; g.landlord.x = -500;
+    const before = g.score;
+    const cord = g.trap.cords[0];
+    g.cat.x = cord.x * T + T / 2; g.cat.y = cord.y * T + T / 2;
+    await new Promise(r => setTimeout(r, 150));
+    const first = { lost: before - g.score, triggered: g.trap.triggered, boom: !!g.explosion };
+    // step off and back on: it only goes off once
+    g.cat.x = (cord.x - 1) * T + T / 2;
+    await new Promise(r => setTimeout(r, 80));
+    g.cat.x = cord.x * T + T / 2;
+    await new Promise(r => setTimeout(r, 150));
+    return { first, second: before - g.score, score: g.score };
+  });
+  ok(trap.first.lost === 4500 && trap.first.triggered,
+     'stepping on the cord drops the laptop and costs 4500 (score now ' + trap.score + ')');
+  ok(trap.first.boom, 'and the laptop goes up — the explosion effect fires');
+  ok(trap.second === 4500, 'the trap only goes off once');
 
   // what each level looks like and who is chasing on it
   const look = await p.evaluate(async () => {

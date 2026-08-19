@@ -195,15 +195,15 @@
    * and low walls line the footpaths, and the people stride straight over them.
    */
   var STRAIT = [
-    '#########################',
-    '#..c................c..P#',
-    '#.######.#M#####.######.#',
-    '#.######n#######n######.#',
-    '#.######.#######.######n#',
-    '#...........n...........#',
-    '#c######.#######.######c#',
-    '#.#####...######.######.#',
-    '#...nc......n......cn...#',
+    '####G####################',
+    '#ppppppp............c..P#',
+    '#HpLppLpw#M#####.######.#',
+    '#pppppppw#######n######.#',
+    '#ppYpKppw#######.######n#',
+    '#pppxxxxw....n..........#',
+    '#cpppppcw#######.######c#',
+    '#www.wwww.######.######.#',
+    '#....c......n......cn...#',
     '#.#####....#####.######.#',
     '#n######..######n######.#',
     '#.######c#######.######.#',
@@ -316,6 +316,14 @@
           case 'M': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'majestic' }); break;
           case 'W': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'sea' }); break;
           case 'F': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'fascia' }); break;
+          case 'p': grid[y][x] = FLOOR; decor.push({ x: x, y: y, kind: 'studio' }); break;
+          case 'x': grid[y][x] = FLOOR; decor.push({ x: x, y: y, kind: 'cord' }); break;
+          case 'w': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'studioWall' }); break;
+          case 'G': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'sign' }); break;
+          case 'L': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'light' }); break;
+          case 'Y': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'tripod' }); break;
+          case 'H': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'plant' }); break;
+          case 'K': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'laptop' }); break;
           default:  grid[y][x] = FLOOR;
         }
       }

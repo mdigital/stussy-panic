@@ -29,6 +29,8 @@
   var RECHARGE_DELAY = 0.85;     // quiet seconds before it starts refilling
   var RECOVER_THRESHOLD = 22;    // after running dry, needs this much to be usable again
 
+  var LAPTOP_PENALTY = 4500;
+
   var BONUS_CHANCE = 1;      // how often the bonus item turns up: 1 = every level
   var BONUS_SCORE = 250;
   var NEVER_CATCH = 1.4 * TILE;   // how close a hopeless pursuit ever gets
@@ -141,7 +143,17 @@
       solidOverhead: false,
       pickup: S.doughnut,
       bonus: { draw: S.sonos, chases: 'cat' },
-      decor: { majestic: S.majestic },
+      decor: {
+        majestic: S.majestic,
+        studio: S.studioFloor,
+        studioWall: S.studioWall,
+        sign: S.studioSign,
+        light: S.studioLight,
+        tripod: S.studioTripod,
+        plant: S.housePlant,
+        laptop: S.laptopStool,
+        cord: S.cord
+      },
       rival: {
         draw: S.landlord,
         sayings: [["WHERE'S YOUR RENT!?"]],
@@ -382,6 +394,15 @@
     game.grid = data.grid;
     game.mushrooms = data.mushrooms.map(function (m) { return { x: m.x, y: m.y, taken: false }; });
     game.decor = data.decor || [];
+
+    // The studio's tripwire: step on the cord and the laptop comes down.
+    var cords = game.decor.filter(function (d) { return d.kind === 'cord'; });
+    game.trap = cords.length ? {
+      cords: cords,
+      laptop: game.decor.filter(function (d) { return d.kind === 'laptop'; })[0] || null,
+      triggered: false
+    } : null;
+    game.explosion = null;
     game.remaining = game.mushrooms.length;
 
     game.cat = makeEntity(data.catSpawn, 132, false);
@@ -813,6 +834,25 @@
     awardExtraLives();
   }
 
+  function checkTrap() {
+    var tr = game.trap;
+    if (!tr || tr.triggered) return;
+    var t = tileOf(game.cat);
+    for (var i = 0; i < tr.cords.length; i++) {
+      if (tr.cords[i].x !== t.x || tr.cords[i].y !== t.y) continue;
+      tr.triggered = true;
+      game.score -= LAPTOP_PENALTY;
+      var lx = tr.laptop ? tr.laptop.x * TILE + TILE / 2 : game.cat.x;
+      var ly = tr.laptop ? tr.laptop.y * TILE + TILE / 2 : game.cat.y;
+      game.explosion = { x: lx, y: ly, life: 0.8 };
+      game.shake = 0.7;
+      addFloater(lx, ly - 22, '-' + LAPTOP_PENALTY, '#ff6b5e');
+      addFloater(game.cat.x, game.cat.y - 26, 'THE LAPTOP!', '#ffe27a');
+      Sfx.explode();
+      return;
+    }
+  }
+
   function awardExtraLives() {
     while (game.score >= game.nextExtraLife) {
       game.lives++;
@@ -916,6 +956,10 @@
     if (game.paused) return;
 
     game.shake = Math.max(0, game.shake - dt);
+    if (game.explosion) {
+      game.explosion.life -= dt;
+      if (game.explosion.life <= 0) game.explosion = null;
+    }
     updateFloaters(dt);
 
     switch (game.state) {
@@ -932,6 +976,7 @@
         updateTaunts(dt);
         checkPickups();
         checkBonus();
+        checkTrap();
         if (game.state === STATE.PLAY) checkCapture();
         break;
 
@@ -991,7 +1036,10 @@
     if (theme.decor) {
       game.decor.forEach(function (d) {
         var paint = theme.decor[d.kind];
-        if (paint) paint(ctx, d.x * TILE, d.y * TILE, TILE, d.x, d.y);
+        if (paint) {
+          paint(ctx, d.x * TILE, d.y * TILE, TILE, d.x, d.y,
+                game.trap ? game.trap.triggered : false);
+        }
       });
     }
   }
@@ -1083,6 +1131,28 @@
     });
     if (game.complaining) drawSpeechBubble(game.cat.x, game.cat.y - 26, game.phrase);
     else if (game.says) drawSpeechBubble(game.cat.x, game.cat.y - 26, game.says);
+
+    if (game.explosion) {
+      var ex = game.explosion;
+      var p = 1 - ex.life / 0.8;
+      ctx.save();
+      if (p < 0.2) {                              // the first flash
+        ctx.fillStyle = 'rgba(255,244,200,' + (0.7 * (1 - p / 0.2)).toFixed(3) + ')';
+        ctx.fillRect(0, 0, PLAY_W, PLAY_H);
+      }
+      var colours = ['#fff3b0', '#ff9c3a', '#e2582c'];
+      for (var ring = 0; ring < 3; ring++) {
+        var rp = Math.max(0, Math.min(1, p * 1.6 - ring * 0.18));
+        if (rp <= 0 || rp >= 1) continue;
+        ctx.globalAlpha = 1 - rp;
+        ctx.fillStyle = colours[ring];
+        ctx.beginPath();
+        ctx.arc(ex.x, ex.y, 8 + rp * 52, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
   }
 
   // A speech bubble above (x, y), one or more lines, with the tail pointing
@@ -1131,6 +1201,10 @@
     ctx.globalAlpha = 1;
   }
 
+  function fmtScore(n) {
+    return (n < 0 ? '-' : '') + String(Math.abs(n)).padStart(6, '0');
+  }
+
   function drawHud() {
     var top = PLAY_H;
     ctx.fillStyle = '#2b2560';
@@ -1141,10 +1215,10 @@
     ctx.textAlign = 'left';
     ctx.font = 'bold 15px "Courier New", monospace';
     ctx.fillStyle = '#b8b0ff';
-    ctx.fillText('SCORE ' + String(game.score).padStart(6, '0'), 12, top + 22);
+    ctx.fillText('SCORE ' + fmtScore(game.score), 12, top + 22);
     ctx.fillText('LEVEL ' + game.level, 12, top + 42);
 
-    ctx.fillText('BEST ' + String(game.best).padStart(6, '0'), 150, top + 22);
+    ctx.fillText('BEST ' + fmtScore(game.best), 150, top + 22);
 
     // lives, as little cat heads
     ctx.fillText('STUSSY', 150, top + 42);

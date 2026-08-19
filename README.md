@@ -88,6 +88,17 @@ low walls line the footpaths, and the people stride straight over them while
 Stussy goes the long way round. The Majestic Centre stands over the block at the
 top of the street — banded glass drum, terracotta column, spiked crown.
 
+The top-left corner of the block is a walk-in photo studio under a PROFILE
+PHOTOS sign, kitted out in monochrome greys — softbox lights on stands, a camera
+tripod, a house plant for the clients — with two of the level's doughnuts
+inside. A silver laptop sits open on a stool, and its power cord runs across
+the floor. The cord is walkable; walking on it is the mistake. The laptop comes
+down and goes up, and it costs you **4,500 points** — the score will happily go
+negative — and the trap only fires once, after which the wreckage and the
+scorch mark stay for the rest of the level. The room has two doors and the
+cord never blocks the only route to anything, so crossing it is always a
+choice.
+
 **The Beach** is open sand along the water, with rock groynes and driftwood
 between you and the nine life preserver rings somebody has left lying about. Maryellen stays home: the rival here is Willie, a
 pear-shaped man in light blue speedos and sunglasses who greets Stussy, when he
@@ -155,6 +166,8 @@ turning her at some junction you have long since forgotten about.
   yowls beat one long one.
 - **Getting caught** costs a Stussy. You start with three, plus one more every
   5,000 points. An enemy that is currently fleeing cannot catch you.
+- **The laptop** in the level 3 studio costs 4,500 points if you touch its
+  cord — once per level, and avoidable.
 - **The bonus item** is out on every level and scores 250. It brings a policeman
   out for the rest of that level — after Stussy in town, after Willie at the
   beach.
@@ -215,7 +228,7 @@ The tests drive the real game in headless Chromium.
 ```bash
 npm install playwright-core          # plus a Chromium build
 CHROMIUM=/path/to/chrome node tests/boot.test.js         # 13 boot checks
-CHROMIUM=/path/to/chrome node tests/rules.test.js        # 41 rule checks
+CHROMIUM=/path/to/chrome node tests/rules.test.js        # 48 rule checks
 CHROMIUM=/path/to/chrome node tests/steer.test.js        # 5 steering checks
 CHROMIUM=/path/to/chrome node tests/sonos.test.js        # 9 bonus-item checks
 CHROMIUM=/path/to/chrome node tests/beach.test.js        # 12 beach checks
