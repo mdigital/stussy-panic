@@ -1,4 +1,4 @@
-/* game.js — Mushroom Bother.
+/* game.js — Stussy Panic.
  *
  * Stussy the cat is collecting nine mushrooms out of a hedge maze. A photographer
  * wants the shot and Maryellen the landlord wants a word. Both of them stride
@@ -152,7 +152,9 @@
         tripod: S.studioTripod,
         plant: S.housePlant,
         laptop: S.laptopStool,
-        cord: S.cord
+        cord: S.cord,
+        cordPlug: S.cordPlug,
+        guy: S.millennial
       },
       rival: {
         draw: S.landlord,
@@ -370,7 +372,7 @@
       score: 0,
       lives: STARTING_LIVES,
       nextExtraLife: EXTRA_LIFE_EVERY,
-      best: Number(global.localStorage && global.localStorage.getItem('mb_best') || 0),
+      best: Number(global.localStorage && global.localStorage.getItem('sp_best') || 0),
       paused: false,
       shake: 0,
       floaters: [],
@@ -400,9 +402,21 @@
     game.trap = cords.length ? {
       cords: cords,
       laptop: game.decor.filter(function (d) { return d.kind === 'laptop'; })[0] || null,
+      guy: game.decor.filter(function (d) { return d.kind === 'guy'; })[0] || null,
       triggered: false
     } : null;
     game.explosion = null;
+    game.guyYell = 0;
+
+    // The cord tile directly under the laptop is drawn plugged into it. It is
+    // re-kinded after the trap is built, so it still trips like the rest.
+    if (game.trap && game.trap.laptop) {
+      game.trap.cords.forEach(function (d) {
+        if (d.x === game.trap.laptop.x && d.y === game.trap.laptop.y + 1) {
+          d.kind = 'cordPlug';
+        }
+      });
+    }
     game.remaining = game.mushrooms.length;
 
     game.cat = makeEntity(data.catSpawn, 132, false);
@@ -848,6 +862,7 @@
       game.shake = 0.7;
       addFloater(lx, ly - 22, '-' + LAPTOP_PENALTY, '#ff6b5e');
       addFloater(game.cat.x, game.cat.y - 26, 'THE LAPTOP!', '#ffe27a');
+      if (tr.guy) game.guyYell = 3.0;
       Sfx.explode();
       return;
     }
@@ -960,6 +975,7 @@
       game.explosion.life -= dt;
       if (game.explosion.life <= 0) game.explosion = null;
     }
+    if (game.guyYell > 0) game.guyYell -= dt;
     updateFloaters(dt);
 
     switch (game.state) {
@@ -988,7 +1004,7 @@
             game.timer = 1.0;
             if (game.score > game.best) {
               game.best = game.score;
-              if (global.localStorage) global.localStorage.setItem('mb_best', String(game.best));
+              if (global.localStorage) global.localStorage.setItem('sp_best', String(game.best));
             }
             Music.reset();
             Sfx.gameOver();
@@ -1131,6 +1147,11 @@
     });
     if (game.complaining) drawSpeechBubble(game.cat.x, game.cat.y - 26, game.phrase);
     else if (game.says) drawSpeechBubble(game.cat.x, game.cat.y - 26, game.says);
+
+    if (game.guyYell > 0 && game.trap && game.trap.guy) {
+      drawSpeechBubble(game.trap.guy.x * TILE + TILE / 2,
+                       game.trap.guy.y * TILE - 8, 'FUCK NOOOOO!');
+    }
 
     if (game.explosion) {
       var ex = game.explosion;
@@ -1350,7 +1371,7 @@
     ctx.textAlign = 'center';
     ctx.fillStyle = '#fff3b0';
     ctx.font = 'bold 46px "Courier New", monospace';
-    ctx.fillText('MUSHROOM BOTHER', PLAY_W / 2, 92);
+    ctx.fillText('STUSSY PANIC', PLAY_W / 2, 92);
 
     ctx.fillStyle = '#8de08d';
     ctx.font = 'bold 16px "Courier New", monospace';
@@ -1451,7 +1472,7 @@
   global.requestAnimationFrame(frame);
 
   // exposed for debugging in the console
-  global.MushroomBother = {
+  global.StussyPanic = {
     get state() { return game; },
     goToLevel: function (n) { loadLevel(n); }
   };

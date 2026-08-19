@@ -19,7 +19,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // Skip the crack screen and the loading picture: those are covered by
   // boot.test.js, and sitting through ten seconds of them in every suite would
   // be a waste of everybody's time.
-  await p.evaluate(() => { window.MushroomBother.state.state = 'title'; });
+  await p.evaluate(() => { window.StussyPanic.state.state = 'title'; });
   await p.keyboard.press('Space');
   await p.waitForTimeout(2200);
 
@@ -28,7 +28,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     window.__t = { catOnBlocked: 0, enemyOnHedge: 0, enemyOnTree: 0, samples: 0 };
     const T = 32;
     window.__probe = setInterval(() => {
-      const g = window.MushroomBother.state;
+      const g = window.StussyPanic.state;
       if (g.state !== 'play') return;
       const at = e => g.grid[Math.floor(e.y / T)][Math.floor(e.x / T)];
       window.__t.samples++;
@@ -55,7 +55,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // where complaining, taunting and capture are all inert — so wait for play and
   // keep her safe while the mechanic under test is exercised.
   const settle = (graceSeconds) => p.evaluate(async (grace) => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     for (let i = 0; i < 300 && g.state !== 'play'; i++) {
       await new Promise(r => setTimeout(r, 30));
     }
@@ -65,10 +65,10 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // ---- 3: complaint meter lifecycle ----------------------------------------
   await settle(60);
-  await p.evaluate(() => { window.MushroomBother.state.complaint = 100; window.MushroomBother.state.exhausted = false; });
+  await p.evaluate(() => { window.StussyPanic.state.complaint = 100; window.StussyPanic.state.exhausted = false; });
   await p.keyboard.down('Space');
   await p.waitForTimeout(600);
-  const mid = await p.evaluate(() => ({ c: window.MushroomBother.state.complaint, complaining: window.MushroomBother.state.complaining }));
+  const mid = await p.evaluate(() => ({ c: window.StussyPanic.state.complaint, complaining: window.StussyPanic.state.complaining }));
   ok(mid.c < 100 && mid.complaining, 'holding SPACE drains the meter while complaining (' + Math.round(mid.c) + ')');
   // 600ms at 60 units a second should take roughly 36 off the meter
   ok(mid.c > 45 && mid.c < 80,
@@ -76,7 +76,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // poll for the moment it runs dry — at the doubled rate that is ~1.7s in,
   // and the recharge starts soon after, so a fixed wait would sample too late
   const dry = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     for (let i = 0; i < 100 && !g.exhausted; i++) {
       await new Promise(r => setTimeout(r, 40));
     }
@@ -84,17 +84,17 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   });
   ok(dry.c === 0 && dry.ex && !dry.complaining, 'meter empties and the cat loses its voice');
   await p.waitForTimeout(1200);
-  const stillHeld = await p.evaluate(() => window.MushroomBother.state.complaining);
+  const stillHeld = await p.evaluate(() => window.StussyPanic.state.complaining);
   ok(stillHeld === false, 'an empty meter cannot be used even with SPACE still held');
   await p.keyboard.up('Space');
   await p.waitForTimeout(2600);
-  const back = await p.evaluate(() => ({ c: window.MushroomBother.state.complaint, ex: window.MushroomBother.state.exhausted }));
+  const back = await p.evaluate(() => ({ c: window.StussyPanic.state.complaint, ex: window.StussyPanic.state.exhausted }));
   ok(back.c > 20 && !back.ex, 'meter recharges and the voice comes back (' + Math.round(back.c) + ')');
 
   // ---- 4: complaining scares whoever is in earshot --------------------------
   await settle(60);
   const scared = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.cat.rolling = false;                 // park her: this is a scare test, not a walk test
     g.complaint = 100; g.exhausted = false;
     g.photographer.flee = 0; g.landlord.flee = 0;
@@ -114,7 +114,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 4b: the two of them call out when they close in ---------------------
   await settle(60);
   const taunts = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.cat.rolling = false;              // park her so they stay in earshot
     g.grace = 10;                       // keep Stussy safe while they crowd in
     g.photographer.flee = 0; g.landlord.flee = 0;
@@ -138,7 +138,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
      'the photographer has two things to say: ' + taunts.photoSayings.map(l => '"' + l + '"').join(', '));
 
   const hushed = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.photographer.tauntTimer = 2; g.photographer.flee = 2;
     await new Promise(r => setTimeout(r, 200));
     return g.photographer.tauntTimer;
@@ -148,7 +148,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 5: capture, life loss, respawn --------------------------------------
   await settle(0);
   const cap = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.cat.rolling = false;              // stand still and be caught
     g.grace = 0; g.photographer.flee = 0; g.landlord.flee = 0;
     const lives = g.lives;
@@ -168,21 +168,21 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // ---- 6: game over and restart --------------------------------------------
   await settle(0);
   const over = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.cat.rolling = false;
     g.lives = 0; g.grace = 0; g.photographer.flee = 0;
     g.photographer.x = g.cat.x; g.photographer.y = g.cat.y;
     await new Promise(r => setTimeout(r, 300));
     const mid = g.lives;
     await new Promise(r => setTimeout(r, 2600));
-    return { lives: mid, state: window.MushroomBother.state.state };
+    return { lives: mid, state: window.StussyPanic.state.state };
   });
   ok(over.state === 'over', 'losing the last cat ends the game');
   await p.waitForTimeout(1200);
   await p.keyboard.press('Space');
   await p.waitForTimeout(400);
   const restart = await p.evaluate(() => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     return { level: g.level, lives: g.lives, score: g.score, left: g.remaining };
   });
   ok(restart.level === 1 && restart.lives === 3 && restart.score === 0 && restart.left === 9,
@@ -253,9 +253,19 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   const studio = {};
   decor[3].forEach(d => { studio[d.kind] = (studio[d.kind] || 0) + 1; });
   ok(studio.sign === 1 && studio.light === 2 && studio.tripod === 1 &&
-     studio.plant >= 1 && studio.laptop === 1 && studio.cord >= 3,
-     'the studio is furnished: sign, two lights, tripod, plant, the laptop and a cord (' +
-     JSON.stringify(studio) + ')');
+     studio.plant >= 1 && studio.laptop === 1 && studio.cord >= 3 && studio.guy === 1,
+     'the studio is furnished: sign, two lights, tripod, plant, the laptop, a cord ' +
+     'and a young man standing much too close (' + JSON.stringify(studio) + ')');
+  const bystander = await p.evaluate(() => {
+    const d = Maze.generate(3, 0);
+    const guy = d.decor.find(x => x.kind === 'guy');
+    const lap = d.decor.find(x => x.kind === 'laptop');
+    return {
+      beside: Math.abs(guy.x - lap.x) + Math.abs(guy.y - lap.y) === 1,
+      solid: d.grid[guy.y][guy.x] === Maze.TREE
+    };
+  });
+  ok(bystander.beside && bystander.solid, 'he stands right beside the stool, and in the way');
   const studioTiles = await p.evaluate(() => {
     const d = Maze.generate(3, 0);
     const cords = d.decor.filter(x => x.kind === 'cord');
@@ -276,8 +286,8 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // the tripwire itself: step on the cord, lose the laptop and 4500 points
   const trap = await p.evaluate(async () => {
-    window.MushroomBother.goToLevel(3);
-    const g = window.MushroomBother.state, T = 32;
+    window.StussyPanic.goToLevel(3);
+    const g = window.StussyPanic.state, T = 32;
     // the intro banner holds the game out of play for a couple of seconds,
     // and the trap is only armed during play
     for (let i = 0; i < 200 && g.state !== 'play'; i++) {
@@ -289,7 +299,9 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     const cord = g.trap.cords[0];
     g.cat.x = cord.x * T + T / 2; g.cat.y = cord.y * T + T / 2;
     await new Promise(r => setTimeout(r, 150));
-    const first = { lost: before - g.score, triggered: g.trap.triggered, boom: !!g.explosion };
+    const first = { lost: before - g.score, triggered: g.trap.triggered, boom: !!g.explosion,
+                    yelling: g.guyYell > 0,
+                    plugged: g.trap.cords.some(c => c.kind === 'cordPlug') };
     // step off and back on: it only goes off once
     g.cat.x = (cord.x - 1) * T + T / 2;
     await new Promise(r => setTimeout(r, 80));
@@ -300,15 +312,17 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   ok(trap.first.lost === 4500 && trap.first.triggered,
      'stepping on the cord drops the laptop and costs 4500 (score now ' + trap.score + ')');
   ok(trap.first.boom, 'and the laptop goes up — the explosion effect fires');
+  ok(trap.first.plugged, 'the cord that trips it is the one plugged into the laptop');
+  ok(trap.first.yelling, 'and the young man lets out his FUCK NOOOOO!');
   ok(trap.second === 4500, 'the trap only goes off once');
 
   // what each level looks like and who is chasing on it
   const look = await p.evaluate(async () => {
     const out = {};
     for (const lvl of [2, 3, 5, 6]) {
-      window.MushroomBother.goToLevel(lvl);
+      window.StussyPanic.goToLevel(lvl);
       await new Promise(r => setTimeout(r, 60));
-      const g = window.MushroomBother.state;
+      const g = window.StussyPanic.state;
       out[lvl] = { name: g.theme.name, caught: g.theme.rival.caught,
                    rival: g.landlord.sayings[0].join(' '),
                    sayings: g.landlord.sayings.map(x => x.join(' ')),
@@ -340,11 +354,11 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // the hedge rule still bites indoors: Stussy cannot cross the furniture
   await p.evaluate(() => {
-    window.MushroomBother.goToLevel(2);
+    window.StussyPanic.goToLevel(2);
     window.__t2 = { catOnBlocked: 0, peopleOnLow: 0, samples: 0 };
     const T = 32;
     window.__probe2 = setInterval(() => {
-      const g = window.MushroomBother.state;
+      const g = window.StussyPanic.state;
       if (g.state !== 'play') return;
       const at = e => g.grid[Math.floor(e.y / T)][Math.floor(e.x / T)];
       window.__t2.samples++;
@@ -366,7 +380,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // Deterministic version: stand Stussy the far side of a sofa and see whether
   // the chaser walks over it rather than around.
   const stepped = await p.evaluate(async () => {
-    const g = window.MushroomBother.state, T = 32;
+    const g = window.StussyPanic.state, T = 32;
     // find a piece of furniture with clear floor above and below it
     let spot = null;
     for (let y = 1; y < Maze.ROWS - 1 && !spot; y++) {

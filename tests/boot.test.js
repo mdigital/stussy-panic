@@ -25,7 +25,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   await p.goto(PAGE);
   await p.waitForTimeout(500);
 
-  const state = () => p.evaluate(() => window.MushroomBother.state.state);
+  const state = () => p.evaluate(() => window.StussyPanic.state.state);
 
   // a small signature of what is on screen, for comparing frames
   const signature = () => p.evaluate(() => {

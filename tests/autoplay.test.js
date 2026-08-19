@@ -25,7 +25,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', 'index.html');
   // Skip the crack screen and the loading picture: those are covered by
   // boot.test.js, and sitting through ten seconds of them in every suite would
   // be a waste of everybody's time.
-  await p.evaluate(() => { window.MushroomBother.state.state = 'title'; });
+  await p.evaluate(() => { window.StussyPanic.state.state = 'title'; });
   await p.keyboard.press('Space');
 
   // In-page bot: BFS over cat-walkable tiles to the nearest mushroom, and yell
@@ -48,7 +48,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', 'index.html');
     }
 
     window.__bot = setInterval(() => {
-      const g = window.MushroomBother.state;
+      const g = window.StussyPanic.state;
       if (!g || g.state !== 'play') { press(null); yell(false); return; }
       const grid = g.grid;
       const cx = Math.floor(g.cat.x / TILE), cy = Math.floor(g.cat.y / TILE);
@@ -88,7 +88,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', 'index.html');
     // record every level/life transition
     let last = '';
     window.__watch = setInterval(() => {
-      const g = window.MushroomBother.state;
+      const g = window.StussyPanic.state;
       const sig = [g.state, g.level, g.lives, g.remaining, g.score].join('|');
       if (sig !== last) { window.__log.push(sig); last = sig; }
     }, 60);
@@ -98,7 +98,7 @@ const PAGE = 'file://' + path.join(__dirname, '..', 'index.html');
   for (let i = 0; i < seconds / 10; i++) {
     await p.waitForTimeout(10000);
     const s = await p.evaluate(() => {
-      const g = window.MushroomBother.state;
+      const g = window.StussyPanic.state;
       return `t state=${g.state} lvl=${g.level} lives=${g.lives} left=${g.remaining} score=${g.score} complaint=${Math.round(g.complaint)}`;
     });
     console.log(s);

@@ -28,7 +28,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // Skip the crack screen and the loading picture: those are covered by
   // boot.test.js, and sitting through ten seconds of them in every suite would
   // be a waste of everybody's time.
-  await p.evaluate(() => { window.MushroomBother.state.state = 'title'; });
+  await p.evaluate(() => { window.StussyPanic.state.state = 'title'; });
 
   // helpers that fire real-looking touch pointer events at canvas coordinates
   await p.evaluate(() => {
@@ -47,7 +47,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   });
 
   const st = () => p.evaluate(() => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     return { state: g.state, x: +g.cat.x.toFixed(1), y: +g.cat.y.toFixed(1),
              dir: g.cat.dir, moving: !!g.cat.moving, rolling: !!g.cat.rolling,
              complaining: g.complaining,
@@ -74,7 +74,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   const VEC = { right: [1, 0], left: [-1, 0], up: [0, -1], down: [0, 1] };
 
   const openFrom = () => p.evaluate(() => {
-    const g = window.MushroomBother.state, T = 32;
+    const g = window.StussyPanic.state, T = 32;
     const tx = Math.floor(g.cat.x / T), ty = Math.floor(g.cat.y / T);
     const d = { right: [1, 0], left: [-1, 0], up: [0, -1], down: [0, 1] };
     return Object.keys(d).filter(k =>
@@ -105,7 +105,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // a tap too quick to span a frame still steers
   const tapped = await p.evaluate(async ([dx, dy]) => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     window.__touch('pointerdown', 9, 116 + dx, 426 + dy);
     window.__touch('pointerup', 9, 116 + dx, 426 + dy);
     const from = { x: g.cat.x, y: g.cat.y };
@@ -133,15 +133,15 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // 5. complain button, and both controls at once on separate fingers
   await p.evaluate(() => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.complaint = 100; g.exhausted = false;
     g.photographer.flee = 0;
     g.photographer.x = g.cat.x + 55; g.photographer.y = g.cat.y;
   });
-  const scoreBefore = await p.evaluate(() => window.MushroomBother.state.score);
+  const scoreBefore = await p.evaluate(() => window.StussyPanic.state.score);
   const dir3 = (await openFrom())[0];
   const both = await p.evaluate(async ([dx, dy]) => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     const from = { x: g.cat.x, y: g.cat.y };
     window.__touch('pointerdown', 1, 116 + dx, 426 + dy);  // finger 1: d-pad
     window.__touch('pointerdown', 2, 800 - 116, 426);      // finger 2: complain
@@ -154,7 +154,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
       flee: +g.photographer.flee.toFixed(2)
     };
   }, PAD[dir3]);
-  const gained = await p.evaluate(s => window.MushroomBother.state.score - s, scoreBefore);
+  const gained = await p.evaluate(s => window.StussyPanic.state.score - s, scoreBefore);
   ok(both.complaining && both.complaint < 100, `complain button drains the meter (${both.complaint})`);
   ok(both.travelled > 10,
      `walking and complaining work on two fingers at once (${both.travelled.toFixed(0)}px while yowling)`);
@@ -171,7 +171,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // 6. tap to restart after game over
   await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.lives = 0; g.grace = 0; g.photographer.flee = 0;
     g.photographer.x = g.cat.x; g.photographer.y = g.cat.y;
   });

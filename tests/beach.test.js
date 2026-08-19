@@ -26,14 +26,14 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // Skip the crack screen and the loading picture: those are covered by
   // boot.test.js, and sitting through ten seconds of them in every suite would
   // be a waste of everybody's time.
-  await p.evaluate(() => { window.MushroomBother.state.state = 'title'; });
+  await p.evaluate(() => { window.StussyPanic.state.state = 'title'; });
   await p.keyboard.press('Space');
   await p.waitForTimeout(2200);
 
   const info = await p.evaluate(async () => {
-    window.MushroomBother.goToLevel(4);
+    window.StussyPanic.goToLevel(4);
     await new Promise(r => setTimeout(r, 2300));
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     return { name: g.theme.name, left: g.remaining,
              rival: g.landlord.sayings.map(s => s.join(' ')), caught: g.landlord.caughtText,
              police: !!g.police };
@@ -49,7 +49,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // The jar has to be there, has to be the Tumjal drawing, and has to actually
   // reach the screen — so check the wiring and then read the pixels back.
   const graphic = await p.evaluate(() => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     if (!g.bonus) return { placed: false };
     const cv = document.getElementById('screen');
     const c = cv.getContext('2d');
@@ -82,7 +82,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // take the jar
   const jar = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.grace = 120; g.cat.rolling = false;
     g.cat.x = g.bonus.x * 32 + 16; g.cat.y = g.bonus.y * 32 + 16;
     const before = g.score;
@@ -105,7 +105,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // he must never catch Willie, and never trouble Stussy
   const pursuit = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.grace = 120;
     const gaps = [];
     const lives = g.lives;
@@ -144,7 +144,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // Willie can still catch her, and says his piece
   const willie = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     // wait out anything still in flight from the previous check
     for (let i = 0; i < 200 && g.state !== 'play'; i++) {
       await new Promise(r => setTimeout(r, 30));
@@ -160,8 +160,8 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
      `Willie still catches her, and the banner reads "${willie.banner}"`);
 
   await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
-    window.MushroomBother.goToLevel(4);
+    const g = window.StussyPanic.state;
+    window.StussyPanic.goToLevel(4);
     await new Promise(r => setTimeout(r, 2300));
     g.grace = 120; g.cat.rolling = false;
     g.cat.x = 6 * 32 + 16; g.cat.y = 5 * 32 + 16;

@@ -1,4 +1,4 @@
-# Mushroom Bother
+# Stussy Panic
 
 A maze chase game in the spirit of the Commodore 64 lawnmower classics, except
 the hero is Stussy, a mushroom-collecting cat, rather than a man with a
@@ -91,13 +91,15 @@ top of the street — banded glass drum, terracotta column, spiked crown.
 The top-left corner of the block is a walk-in photo studio under a PROFILE
 PHOTOS sign, kitted out in monochrome greys — softbox lights on stands, a camera
 tripod, a house plant for the clients — with two of the level's doughnuts
-inside. A silver laptop sits open on a stool, and its power cord runs across
-the floor. The cord is walkable; walking on it is the mistake. The laptop comes
-down and goes up, and it costs you **4,500 points** — the score will happily go
-negative — and the trap only fires once, after which the wreckage and the
-scorch mark stay for the rest of the level. The room has two doors and the
-cord never blocks the only route to anything, so crossing it is always a
-choice.
+inside. A silver laptop sits open on a stool, its power cord dropping off the back,
+elbowing at the floor, and running across the boards to the wall. A young man
+in a beanie stands beside the stool, looking at his phone; he never moves. The
+cord is walkable; walking on it is the mistake. The laptop comes down and goes
+up — the man throws his arms in the air and yells "FUCK NOOOOO!" — and it costs
+you **4,500 points**, with the score happily going negative. The trap only
+fires once, after which the wreckage and the scorch mark stay for the rest of
+the level, and the man keeps his arms up. The room has two doors and the cord
+never blocks the only route to anything, so crossing it is always a choice.
 
 **The Beach** is open sand along the water, with rock groynes and driftwood
 between you and the nine life preserver rings somebody has left lying about. Maryellen stays home: the rival here is Willie, a
@@ -228,7 +230,7 @@ The tests drive the real game in headless Chromium.
 ```bash
 npm install playwright-core          # plus a Chromium build
 CHROMIUM=/path/to/chrome node tests/boot.test.js         # 13 boot checks
-CHROMIUM=/path/to/chrome node tests/rules.test.js        # 48 rule checks
+CHROMIUM=/path/to/chrome node tests/rules.test.js        # 51 rule checks
 CHROMIUM=/path/to/chrome node tests/steer.test.js        # 5 steering checks
 CHROMIUM=/path/to/chrome node tests/sonos.test.js        # 9 bonus-item checks
 CHROMIUM=/path/to/chrome node tests/beach.test.js        # 12 beach checks

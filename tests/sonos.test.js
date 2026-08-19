@@ -26,7 +26,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // Skip the crack screen and the loading picture: those are covered by
   // boot.test.js, and sitting through ten seconds of them in every suite would
   // be a waste of everybody's time.
-  await p.evaluate(() => { window.MushroomBother.state.state = 'title'; });
+  await p.evaluate(() => { window.StussyPanic.state.state = 'title'; });
   await p.keyboard.press('Space');
   await p.waitForTimeout(2300);
 
@@ -34,8 +34,8 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   const rate = await p.evaluate(() => {
     let seen = 0, runs = 400;
     for (let i = 0; i < runs; i++) {
-      window.MushroomBother.goToLevel(1 + (i % 6));
-      if (window.MushroomBother.state.bonus) seen++;
+      window.StussyPanic.goToLevel(1 + (i % 6));
+      if (window.StussyPanic.state.bonus) seen++;
     }
     return seen / runs;
   });
@@ -43,8 +43,8 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // 2. force it on, walk onto it, and see what happens
   const grabbed = await p.evaluate(async () => {
-    window.MushroomBother.goToLevel(1);
-    const g = window.MushroomBother.state;
+    window.StussyPanic.goToLevel(1);
+    const g = window.StussyPanic.state;
     await new Promise(r => setTimeout(r, 2200));
     const before = { score: g.score, enemies: g.enemies.length, police: !!g.police };
     g.cat.x = g.bonus.x * 32 + 16; g.cat.y = g.bonus.y * 32 + 16;   // step onto it
@@ -71,7 +71,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // 3. he actually chases — and he does not start on top of her
   const chase = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.grace = 60; g.cat.rolling = false;
     const start = Math.hypot(g.police.x - g.cat.x, g.police.y - g.cat.y);
     await new Promise(r => setTimeout(r, 2500));
@@ -83,7 +83,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // 4. complaining works on him too
   const scared = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     g.cat.rolling = false; g.complaint = 100; g.exhausted = false;
     g.police.flee = 0; g.police.x = g.cat.x + 55; g.police.y = g.cat.y;
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
@@ -96,16 +96,16 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // 5. he is gone again next level
   const next = await p.evaluate(async () => {
-    window.MushroomBother.goToLevel(4);
+    window.StussyPanic.goToLevel(4);
     await new Promise(r => setTimeout(r, 100));
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     return { police: !!g.police, enemies: g.enemies.length };
   });
   ok(!next.police && next.enemies === 2, 'he is not there on the next level');
 
   await p.evaluate(async () => {
-    window.MushroomBother.goToLevel(1);
-    const g = window.MushroomBother.state;
+    window.StussyPanic.goToLevel(1);
+    const g = window.StussyPanic.state;
     await new Promise(r => setTimeout(r, 2200));
     g.grace = 60;
     if (!g.bonus) g.bonus = { x: 3, y: 3, taken: false };

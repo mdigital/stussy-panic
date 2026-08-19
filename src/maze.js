@@ -199,8 +199,8 @@
     '#ppppppp............c..P#',
     '#HpLppLpw#M#####.######.#',
     '#pppppppw#######n######.#',
-    '#ppYpKppw#######.######n#',
-    '#pppxxxxw....n..........#',
+    '#ppYpKJpw#######.######n#',
+    '#ppppxxxw....n..........#',
     '#cpppppcw#######.######c#',
     '#www.wwww.######.######.#',
     '#....c......n......cn...#',
@@ -324,6 +324,7 @@
           case 'Y': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'tripod' }); break;
           case 'H': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'plant' }); break;
           case 'K': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'laptop' }); break;
+          case 'J': grid[y][x] = TREE;  decor.push({ x: x, y: y, kind: 'guy' }); break;
           default:  grid[y][x] = FLOOR;
         }
       }

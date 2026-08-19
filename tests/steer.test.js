@@ -19,17 +19,17 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
   // Skip the crack screen and the loading picture: those are covered by
   // boot.test.js, and sitting through ten seconds of them in every suite would
   // be a waste of everybody's time.
-  await p.evaluate(() => { window.MushroomBother.state.state = 'title'; });
+  await p.evaluate(() => { window.StussyPanic.state.state = 'title'; });
   await p.keyboard.press('Space');
   await p.waitForTimeout(2300);
 
   const st = () => p.evaluate(() => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     return { x: +g.cat.x.toFixed(1), y: +g.cat.y.toFixed(1), dir: g.cat.dir,
              rolling: !!g.cat.rolling, moving: !!g.cat.moving };
   });
   const openDirs = () => p.evaluate(() => {
-    const g = window.MushroomBother.state, T = 32;
+    const g = window.StussyPanic.state, T = 32;
     const tx = Math.floor(g.cat.x / T), ty = Math.floor(g.cat.y / T);
     const d = { ArrowRight: [1,0], ArrowLeft: [-1,0], ArrowUp: [0,-1], ArrowDown: [0,1] };
     return Object.keys(d).filter(k => g.grid[ty + d[k][1]][tx + d[k][0]] === Maze.FLOOR);
@@ -70,7 +70,7 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
 
   // 5. a turn asked for far too early lapses instead of firing much later
   const lapsed = await p.evaluate(async () => {
-    const g = window.MushroomBother.state;
+    const g = window.StussyPanic.state;
     // ask for a direction that is walled off right now
     const T = 32, tx = Math.floor(g.cat.x / T), ty = Math.floor(g.cat.y / T);
     const blocked = [[0,-1],[0,1],[1,0],[-1,0]].find(d => g.grid[ty + d[1]][tx + d[0]] !== Maze.FLOOR);

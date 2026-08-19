@@ -214,6 +214,12 @@
     gearDark:  '#2f2f36',
     softbox:   '#f4f4f7',
     cordDark:  '#26262b',
+    beanie:    '#c98f2c',
+    hoodie:    '#4a7a72',
+    hoodieDk:  '#33564f',
+    skinny:    '#26262c',
+    sneaker:   '#f2efe6',
+    phone:     '#1c1c22',
     silver:    '#d5d6db',
     silverDk:  '#a3a5ad',
     glow:      '#c3e2ff',
@@ -825,6 +831,68 @@
     ctx.fillRect(px + 5 * u, py + 2 * u, 6 * u, 3 * u);
     ctx.fillStyle = C.silverDk;
     ctx.fillRect(px + 4 * u, py + 7 * u, 8 * u, u);
+    // the charging cord, off the back of the laptop and down to the floor
+    ctx.fillStyle = C.cordDark;
+    ctx.fillRect(px + 11 * u, py + 7 * u, u, 2 * u);
+    ctx.fillRect(px + 11.5 * u, py + 9 * u, u, 7 * u);
+  }
+
+  // The stretch of cord directly under the laptop: it comes down off the
+  // stool, elbows, and sets off across the floor towards the wall.
+  function drawCordPlug(ctx, px, py, size, tx, ty, triggered) {
+    var u = size / UNIT;
+    studioBase(ctx, px, py, size, tx, ty);
+    ctx.fillStyle = triggered ? C.scorch : C.cordDark;
+    ctx.fillRect(px + 11.5 * u, py, u, 11 * u);          // down from the stool
+    ctx.fillRect(px + 11.5 * u, py + 11 * u, 4.5 * u, u); // and away to the wall
+    if (triggered) {
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillRect(px + 9 * u, py + 2 * u, 6 * u, 6 * u);
+    }
+  }
+
+  // A young man, phone in hand, standing much too close to the set. He does
+  // not move; he is drawn with his arms in the air once the laptop has gone.
+  function drawMillennial(ctx, px, py, size, tx, ty, exploded) {
+    var u = size / UNIT;
+    studioBase(ctx, px, py, size, tx, ty);
+    function q(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(px + x * u, py + y * u, w * u, h * u); }
+
+    q(4, 15, 8, 1, C.shadow);
+    // skinny jeans and white sneakers
+    q(6, 11, 2, 4, C.skinny);
+    q(9, 11, 2, 4, C.skinny);
+    q(5, 15, 3, 1, C.sneaker);
+    q(9, 15, 3, 1, C.sneaker);
+    // hoodie
+    q(4, 6, 8, 5, C.hoodie);
+    q(4, 6, 8, 1, C.hoodieDk);
+    q(7, 7, 2, 1, C.hoodieDk);           // drawstrings
+    // head under a beanie
+    q(5, 2, 6, 4, C.skin);
+    q(5, 5, 6, 1, C.skinDark);
+    q(4, 1, 8, 2, C.beanie);
+    q(4, 0, 8, 1, C.beanie);
+    q(6, 3, 1, 1, C.black);
+    q(9, 3, 1, 1, C.black);
+
+    if (exploded) {
+      // arms straight up, mouth wide open
+      q(3, 2, 2, 5, C.hoodie);
+      q(11, 2, 2, 5, C.hoodie);
+      q(3, 1, 2, 1, C.skin);
+      q(11, 1, 2, 1, C.skin);
+      q(7, 4, 2, 2, C.black);
+    } else {
+      // head down, phone in both hands
+      q(3, 7, 2, 3, C.hoodie);
+      q(11, 7, 2, 3, C.hoodie);
+      q(3, 10, 2, 1, C.skin);
+      q(11, 10, 2, 1, C.skin);
+      q(6, 9, 4, 2, C.phone);
+      q(7, 9, 2, 1, C.glow);
+      q(7, 4, 2, 1, C.skinDark);
+    }
   }
 
   // The power cord, taped across the floor. Charred once it has done its work.
@@ -1608,6 +1676,8 @@
     housePlant: drawHousePlant,
     laptopStool: drawLaptopStool,
     cord: drawCord,
+    cordPlug: drawCordPlug,
+    millennial: drawMillennial,
     house: drawHouse,
     jackson: drawJackson,
     alien: drawAlien,
