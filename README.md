@@ -40,6 +40,8 @@ All the text is set in **Stussy64**, an original 8×8 pixel font in the C64
 idiom, drawn glyph by glyph for this game and compiled to a TTF (it lives at
 `assets/fonts/Stussy64.ttf`, public domain). It is monospaced with an advance
 equal to its size, which is also how the banners fit themselves to the screen.
+The glyphs are bitmaps in `assets/fonts/make-font.py`; edit them there and
+rerun it to rebuild the TTF.
 
 | Key | Does |
 | --- | --- |
