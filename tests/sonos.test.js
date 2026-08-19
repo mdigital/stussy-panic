@@ -28,16 +28,13 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     }
     return seen / runs;
   });
-  ok(rate > 0.4 && rate < 0.6, `the speaker shows up on ${(rate * 100).toFixed(0)}% of levels`);
+  ok(rate === 1, `the bonus item is out on every level (${(rate * 100).toFixed(0)}% of 400 loads)`);
 
   // 2. force it on, walk onto it, and see what happens
   const grabbed = await p.evaluate(async () => {
     window.MushroomBother.goToLevel(1);
     const g = window.MushroomBother.state;
     await new Promise(r => setTimeout(r, 2200));
-    if (!g.bonus) {                       // make sure it is there for the test
-      g.bonus = { x: Math.floor(g.cat.x / 32), y: Math.floor(g.cat.y / 32), taken: false };
-    }
     const before = { score: g.score, enemies: g.enemies.length, police: !!g.police };
     g.cat.x = g.bonus.x * 32 + 16; g.cat.y = g.bonus.y * 32 + 16;   // step onto it
     await new Promise(r => setTimeout(r, 200));

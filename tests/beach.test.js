@@ -35,11 +35,44 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
      'and he has four things to say on the way over: ' + info.rival.map(l => `"${l}"`).join(', '));
   ok(!info.police, 'no policeman until the jar is picked up');
 
+  // The jar has to be there, has to be the Tumjal drawing, and has to actually
+  // reach the screen — so check the wiring and then read the pixels back.
+  const graphic = await p.evaluate(() => {
+    const g = window.MushroomBother.state;
+    if (!g.bonus) return { placed: false };
+    const cv = document.getElementById('screen');
+    const c = cv.getContext('2d');
+    const px = g.bonus.x * 32, py = g.bonus.y * 32;
+    const d = c.getImageData(px, py, 32, 32).data;
+    // the label purple and the lid gold, as drawn in src/sprites.js
+    const want = { label: [0x3b, 0x2a, 0x5e], gold: [0xd9, 0xac, 0x3a] };
+    const found = { label: 0, gold: 0 };
+    for (let i = 0; i < d.length; i += 4) {
+      for (const key of Object.keys(want)) {
+        const [r, gg, b] = want[key];
+        if (Math.abs(d[i] - r) < 12 && Math.abs(d[i + 1] - gg) < 12 && Math.abs(d[i + 2] - b) < 12) {
+          found[key]++;
+        }
+      }
+    }
+    return {
+      placed: true,
+      isTumjal: g.theme.bonus.draw === window.Sprites.tumjal,
+      notTheSpeaker: g.theme.bonus.draw !== window.Sprites.sonos,
+      labelPixels: found.label,
+      goldPixels: found.gold
+    };
+  });
+  ok(graphic.placed, 'the jar is out on the sand — the bonus item appears on every level now');
+  ok(graphic.isTumjal && graphic.notTheSpeaker, 'level 4 uses the Tumjal drawing, not the speaker');
+  ok(graphic.labelPixels > 20 && graphic.goldPixels > 8,
+     `and it really is painted on the beach: ${graphic.labelPixels} pixels of label purple, ` +
+     `${graphic.goldPixels} of lid gold at the jar's tile`);
+
   // take the jar
   const jar = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
     g.grace = 120; g.cat.rolling = false;
-    if (!g.bonus) g.bonus = { x: Math.floor(g.cat.x / 32), y: Math.floor(g.cat.y / 32), taken: false };
     g.cat.x = g.bonus.x * 32 + 16; g.cat.y = g.bonus.y * 32 + 16;
     const before = g.score;
     await new Promise(r => setTimeout(r, 200));

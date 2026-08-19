@@ -83,8 +83,8 @@ Vipers stay on throughout.
 
 ### The bonus item
 
-About half the time there is a bonus item out on the level, worth 250. Picking
-it up sets Stussy off — *guys look what I found!* — and brings a policeman out
+There is a bonus item out on every level, worth 250. Picking it up sets Stussy
+off — *guys look what I found!* — and brings a policeman out
 at the far end.
 
 In town the item is a single smart speaker, and the policeman comes after
@@ -125,15 +125,15 @@ turning her at some junction you have long since forgotten about.
   yowls beat one long one.
 - **Getting caught** costs a Stussy. You start with three, plus one more every
   5,000 points. An enemy that is currently fleeing cannot catch you.
-- **The bonus item** appears on about half of levels and scores 250. It brings a
-  policeman out for the rest of that level — after Stussy in town, after Willie
-  at the beach.
+- **The bonus item** is out on every level and scores 250. It brings a policeman
+  out for the rest of that level — after Stussy in town, after Willie at the
+  beach.
 - **Scoring:** 100 a mushroom, 25 each time you send someone running, and
   500 + 100 × level for clearing the garden.
 - **They talk.** Get within seven tiles and they start on you — Maryellen wants
   to know where your rent is, the photographer threatens a bad review on
-  Trademe, Charteris Bay Man just tells Stussy to get lost, Willie has four
-  observations about the weather and his grooming — and whoever catches Stussy
+  Trademe or wonders about her white balance, Charteris Bay Man just tells Stussy
+  to get lost, Willie has four observations about the weather and his grooming — and whoever catches Stussy
   gets the last word. Scare one off and it shuts up while it runs.
 - **The two chasers behave differently.** The photographer heads straight for
   Stussy. Maryellen aims a few tiles ahead of where Stussy is going, trying to
@@ -213,12 +213,15 @@ one tap carries her across the garden with nothing held, that she parks square
 against a wall, that tapping back turns her around, and that a turn asked for
 too early lapses instead of firing later.
 
-`sonos.test.js` covers the speaker: that it turns up on roughly half of levels
+`sonos.test.js` covers the bonus item: that it turns up on every level
 (measured over 400 loads), that taking it scores and sets Stussy off, that a
 policeman appears as a third chaser across the level rather than on top of her,
 that he closes in, that yelling scares him too, and that he is gone next level.
 
-`beach.test.js` covers level 4: that it is the beach with nine rings, that
+`beach.test.js` covers level 4: that the jar out on the sand really is the
+Tumjal drawing and really reaches the screen — the test reads the canvas pixels
+back at the jar's tile and counts label purple and lid gold. It also covers that
+it is the beach with nine rings, that
 Willie's line on catching Stussy is right, that the jar of Tumjal brings a
 policeman who chases *Willie* rather than her, that he trails without closing
 and never troubles her, and that Willie can still catch her.

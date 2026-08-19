@@ -28,7 +28,7 @@
   var RECHARGE_DELAY = 0.85;     // quiet seconds before it starts refilling
   var RECOVER_THRESHOLD = 22;    // after running dry, needs this much to be usable again
 
-  var BONUS_CHANCE = 0.5;    // how often the bonus item turns up on a level
+  var BONUS_CHANCE = 1;      // how often the bonus item turns up: 1 = every level
   var BONUS_SCORE = 250;
   var NEVER_CATCH = 1.4 * TILE;   // how close a hopeless pursuit ever gets
 
@@ -126,7 +126,10 @@
   // sayings and picks one at a time; a saying is split into lines here so a long
   // one does not sprawl across half the garden.
   var TAUNTS = {
-    photographer: [['BAD REVIEW ON', 'TRADEME HEY!?!']],
+    photographer: [
+      ['BAD REVIEW ON', 'TRADEME HEY!?!'],
+      ['CHECK YOUR', 'WHITE BALANCE']
+    ],
     landlord: [["WHERE'S YOUR RENT!?"]]
   };
 
@@ -365,9 +368,9 @@
     game.timer = 2.0;
   }
 
-  // The bonus item turns up on about half the levels, dropped somewhere Stussy
-  // can reach but nowhere near where she starts. What it is depends on where
-  // you are: a speaker in town, a jar of Tumjal relish at the beach.
+  // The bonus item is out on every level, dropped somewhere Stussy can reach
+  // but nowhere near where she starts. What it is depends on where you are: a
+  // speaker in town, a jar of Tumjal relish at the beach.
   function placeBonus(data) {
     game.bonus = null;
     if (Math.random() >= BONUS_CHANCE) return;

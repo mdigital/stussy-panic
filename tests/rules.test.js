@@ -111,14 +111,16 @@ const ok = (c, m) => { if (!c) failures++; console.log((c ? 'PASS  ' : 'FAIL  ')
     return {
       photoTimer: g.photographer.tauntTimer,
       maryTimer: g.landlord.tauntTimer,
-      photoLines: g.photographer.sayings[0].join(' '),
+      photoSayings: g.photographer.sayings.map(x => x.join(' ')),
       maryLines: g.landlord.sayings[0].join(' ')
     };
   });
   ok(taunts.photoTimer > 0 && taunts.maryTimer > 0, 'both start on Stussy once they are close');
   ok(taunts.maryLines === "WHERE'S YOUR RENT!?", 'Maryellen asks where the rent is — "' + taunts.maryLines + '"');
-  ok(taunts.photoLines === 'BAD REVIEW ON TRADEME HEY!?!',
-     'the photographer threatens a Trademe review — "' + taunts.photoLines + '"');
+  var wantPhoto = ['BAD REVIEW ON TRADEME HEY!?!', 'CHECK YOUR WHITE BALANCE'];
+  ok(wantPhoto.every(l => taunts.photoSayings.indexOf(l) >= 0) &&
+     taunts.photoSayings.length === wantPhoto.length,
+     'the photographer has two things to say: ' + taunts.photoSayings.map(l => '"' + l + '"').join(', '));
 
   const hushed = await p.evaluate(async () => {
     const g = window.MushroomBother.state;
